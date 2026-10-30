@@ -95,8 +95,9 @@ async function live(){
   for(let d=0;d<7;d++){const day=[];for(let k=0;k<24;k++){const i=d*24+k;
    day.push({t:h.temperature_2m[i],p:h.precipitation_probability[i]??0,r:h.precipitation[i]??0,w:h.wind_speed_10m[i],g:h.wind_gusts_10m[i],d:h.wind_direction_10m[i],wv:((m&&m.hourly.wave_height[i])||0)*3.28,wr:(m&&m.hourly.wave_direction[i])??null,cs:m&&m.hourly.ocean_current_velocity[i]!=null?m.hourly.ocean_current_velocity[i]/1.852:null,sw:m&&m.hourly.sea_surface_temperature[i]!=null?m.hourly.sea_surface_temperature[i]*9/5+32:null})}H.push(day)}
   DAYS=H;TIDES=n?n.predictions.map(p=>({t:(Date.UTC(+p.t.slice(0,4),+p.t.slice(5,7)-1,+p.t.slice(8,10),+p.t.slice(11,13),+p.t.slice(14,16))-Date.UTC(D0.getFullYear(),D0.getMonth(),D0.getDate()))/36e5,type:p.type,h:+p.v})):ext(m);
-  LIVEON=true;LAST=Date.now();$("#st").textContent="Live data · updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+(SPOT.st?" · NOAA station "+SPOT.st+((SPOT.n.match(/\(tides: ([^,)]*)/)||[])[1]?" ("+SPOT.n.match(/\(tides: ([^,)]*)/)[1]+")":""):" · tides: model estimate")
- }catch(e){sample();$("#st").textContent="⚠ Sample data, not a real forecast. Couldn't load live data. Tap Refresh to retry."}
+  try{localStorage.setItem('nsfh-c-'+SPOT.lat+','+SPOT.lon,JSON.stringify({t:Date.now(),d0:[D0.getFullYear(),D0.getMonth(),D0.getDate()],tz:TZOFF,days:DAYS,tides:TIDES}))}catch(e){}
+LIVEON=true;LAST=Date.now();$("#st").textContent="Live data · updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+(SPOT.st?" · NOAA station "+SPOT.st+((SPOT.n.match(/\(tides: ([^,)]*)/)||[])[1]?" ("+SPOT.n.match(/\(tides: ([^,)]*)/)[1]+")":""):" · tides: model estimate")
+ }catch(e){const r=restore();if(r===null)sample();$("#st").textContent=r!==null?"⚠ Offline: showing the forecast saved "+r+". Tap Refresh to retry.":"⚠ Sample data, not a real forecast. Couldn't load live data. Tap Refresh to retry."}
  draw()}
 function tideAt(t){if(!TIDES.length)return 0;if(t<TIDES[0].t)return TIDES[0].h;if(t>=TIDES[TIDES.length-1].t)return TIDES[TIDES.length-1].h;for(let i=0;i<TIDES.length-1;i++){const a=TIDES[i],b=TIDES[i+1];if(t>=a.t&&t<b.t){const f=(t-a.t)/(b.t-a.t);return a.h+(b.h-a.h)*(1-Math.cos(Math.PI*f))/2}}return 0}
 function stats(d){const H=DAYS[d],day=H.slice(5,20);
@@ -121,7 +122,7 @@ const hs=x=>x.w<=LIM&&x.g<=LIM*1.4&&x.p<=RL&&x.wv<=WL?'good':x.w<=LIM*1.3&&x.g<=
 const hw=x=>x.w<=LIM&&x.g<=LIM*1.4?'good':x.w<=LIM*1.3&&x.g<=LIM*1.8?'fair':'poor',hv=x=>x.wv<=WL?'good':x.wv<=WL*1.5?'fair':'poor',hr=x=>x.p<=RL?'good':x.p<=Math.min(100,RL*1.5+10)?'fair':'poor',hc=x=>x.cs==null?'':x.cs<=CL?'good':x.cs<=CL*1.5?'fair':'poor';
 function svg(d,H,s,ax,f,al){const bg=!f?'':DAYS[d].map((x,h)=>`<rect class='h${f(x)}' x='${X(h).toFixed(1)}' y='0' width='12.6' height='${H-(ax?12:0)}'/>`).join('');let a='';if(ax)[0,6,12,18,24].forEach(h=>a+=`<text class='ax' x='${X(h)}' y='${H-3}' text-anchor='middle'>${fmt(h).replace(':00','')}</text>`);let n='';if(!d){const t=new Date(Date.now()+TZOFF*1000),x=X(t.getUTCHours()+t.getUTCMinutes()/60);n=`<line class='nw' x1='${x}' x2='${x}' y1='0' y2='${H-(ax?12:0)}'/>`}return`<svg role='img' aria-label='${al||''}' viewBox='0 0 340 ${H}'>${bg}${[6,12,18].map(h=>`<line class='gl' x1='${X(h)}' x2='${X(h)}' y1='0' y2='${H-(ax?12:0)}'/>`).join('')}${s}${n}${a}</svg>`}
 const arr=(d,k,y,c)=>DAYS[d].map((x,h)=>x[k]==null?'':`<g transform='translate(${X(h+.5).toFixed(1)} ${y}) rotate(${Math.round(x[k])+180})'><path d='M0 -6L3.6 4L0 2L-3.6 4Z' fill='${c}'/></g>`).join('');
-const tideL=(d,t,b)=>{const tv=TIDES.map(x=>x.h),lo=Math.floor(Math.min(...tv,0)),hi=Math.ceil(Math.max(...tv,1)),y=v=>b-(v-lo)/(hi-lo||1)*(b-t);let p='';for(let h=0;h<=24;h+=.5)p+=(h?'L':'M')+X(h).toFixed(1)+' '+y(tideAt(d*24+h)).toFixed(1);return GR(lo<0&&hi>0?[lo,0,hi]:[lo,Math.round((lo+hi)/2),hi],y,1)+`<path class='t1' d='${p}L${X(24)} ${b}L${X(0)} ${b}Z'/><path class='t2' d='${p}'/>`};
+const tideL=(d,t,b)=>{const tv=TIDES.map(x=>x.h),lo=Math.floor(Math.min(...tv,0)),hi=Math.ceil(Math.max(...tv,1)),y=v=>b-(v-lo)/(hi-lo||1)*(b-t);let p='';for(let h=0;h<=24;h+=.5)p+=(h?'L':'M')+X(h).toFixed(1)+' '+y(tideAt(d*24+h)).toFixed(1);return GR(lo<0&&hi>0?(-lo<(hi-lo)*.2?[0,Math.round(hi/2),hi]:[lo,0,hi]):[lo,Math.round((lo+hi)/2),hi],y,1)+`<path class='t1' d='${p}L${X(24)} ${b}L${X(0)} ${b}Z'/><path class='t2' d='${p}'/>`};
 const windL=(d,t,b,g)=>{const y=v=>b-Math.min(v,40)/40*(b-t),H=DAYS[d];return GR([0,20,40],y)+`<line class='w2' x1='30' x2='330' y1='${y(LIM)}' y2='${y(LIM)}'/>`+(g?`<path class='g1' d='${P(H,x=>y(x.g))}'/>`:'')+`<path class='w1' d='${P(H,x=>y(x.w))}'/>`};
 const waveL=(d,t,b)=>{const y=v=>b-Math.min(v,6)/6*(b-t);return GR([0,2,4,6],y,1)+`<path class='v1' d='${P(DAYS[d],x=>y(x.wv))}'/>`};
 const rainL=(d,t,b)=>GR([0,50,100],v=>b-v/100*(b-t))+DAYS[d].map((x,h)=>{const e=x.p/100*(b-t);return`<rect class='rb' x='${X(h)+.5}' y='${b-e}' width='12' height='${e}'/>`}).join('');
@@ -161,7 +162,7 @@ function draw(){
   <div><span>Wind / gusts (day max)</span>${Math.round(s.w)} / ${Math.round(s.g)} kn from ${cp(s.dir)} <b style="display:inline-block;transform:rotate(${s.dir+180}deg)">↑</b></div><div><span>Water temp</span>${s.sw==null?"–":tp(s.sw)}</div></div>
   <div class="tides">${td}</div>${d==OPEN?chart(d):""}</div>`}).join("")}
 const fillSp=i=>{$("#spot").innerHTML=SPOTS.map((s,k)=>`<option value="${k}"${k==i?" selected":""}>${s.n.replace(/ \(tides:.*\)$/,'')}</option>`).join("")};fillSp(0);
-$("#spot").onchange=e=>{SPOT=SPOTS[e.target.value];sample();draw();live()};
+$("#spot").onchange=e=>{SPOT=SPOTS[e.target.value];if(restore()===null)sample();draw();live()};
 $("#lim").oninput=e=>{LIM=+e.target.value;$("#limv").textContent=LIM+" kn";draw()};
 $("#rl").oninput=e=>{RL=+e.target.value;$("#rlv").textContent=RL+"%";draw()};
 $("#wl").oninput=e=>{WL=+e.target.value;$("#wlv").textContent=WL+" ft";draw()};
@@ -206,9 +207,14 @@ const NP=SPOTS.length;
 function save(){try{localStorage.setItem('nsfh1',JSON.stringify({FT,LIM,RL,WL,CL,v:3,UN,sp:SPOT.n,sl:SPOTS}))}catch(e){}}
 try{const j=JSON.parse(localStorage.getItem('nsfh1')||'null');if(j){Object.assign(FT,j.FT||{});LIM=j.LIM??LIM;RL=j.RL??RL;WL=j.WL??WL;CL=j.CL??CL;if(j.v==3&&j.sl&&j.sl.length){SPOTS.length=0;j.sl.forEach(s=>SPOTS.push(s))}SPOT=SPOTS.find(s=>s.n==j.sp)||SPOTS[0];SPOTS.forEach(s=>{s.L=s.L||{LIM,RL,WL,CL}});UN=j.UN||UN;
  [['lim',LIM,' kn'],['rl',RL,'%'],['wl',WL,' ft'],['cl',CL,' kn']].forEach(([id,v,u])=>{$('#'+id).value=v;$('#'+id+'v').textContent=v+u});fillSp(SPOTS.indexOf(SPOT));fillFt()}}catch(e){}
+function restore(){try{const c=JSON.parse(localStorage.getItem('nsfh-c-'+SPOT.lat+','+SPOT.lon)||'null');if(!c)return null;
+ const n=new Date(Date.now()+c.tz*1000),td=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()),off=Math.round((td-Date.UTC(c.d0[0],c.d0[1],c.d0[2]))/864e5);
+ if(off<0||off>=6)return null;
+ DAYS=c.days.slice(off);TIDES=c.tides.map(x=>({...x,t:x.t-off*24}));TZOFF=c.tz;D0.setTime(new Date(c.d0[0],c.d0[1],c.d0[2]+off).getTime());OPEN=Math.min(OPEN,DAYS.length-1);LIVEON=false;
+ const o=Date.now()-c.t>432e5?{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}:{hour:'numeric',minute:'2-digit'};return 'at '+new Date(c.t).toLocaleString([],o)}catch(e){return null}}
 function ext(m){const s=m.hourly.sea_level_height_msl.map(v=>v*3.281),T=[];for(let i=1;i<s.length-1;i++){const a=s[i-1],b=s[i],c=s[i+1];if(b>a&&b>=c)T.push({t:i,type:'H',h:b});else if(b<a&&b<=c)T.push({t:i,type:'L',h:b})}return T}
 let TZOFF=-new Date().getTimezoneOffset()*60;
 let LAST=0,LIVEON=false;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live()});
-mine();sample();draw();live();
+mine();if(restore()===null)sample();draw();live();
 </script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))</script>
 </body></html>
