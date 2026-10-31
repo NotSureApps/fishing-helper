@@ -31,7 +31,7 @@ a{color:var(--ac)}
 <header><b>Not Sure Fishing Helper</b><span>Tides, wind, waves and rain for planning your fishing days</span></header>
 <article>
 <h1>Privacy Policy</h1>
-<p class="mu">Last updated: October 29, 2026</p>
+<p class="mu">Last updated: October 31, 2026</p>
 
 <p><b>The short version:</b> there are no accounts, no ads, and no analytics. The app does not collect your name, email, or contacts, and it does not sell or share personal data. Your settings stay on your device.</p>
 
@@ -52,12 +52,14 @@ a{color:var(--ac)}
 <p>To show forecasts, the app sends requests to third-party services. As with any internet request, these services can see your device's IP address.</p>
 <ul>
 <li><b>Open-Meteo</b> (open-meteo.com) receives the coordinates of the spot you are viewing, to return weather, wave, current and sea level data. It also receives the text you type when you search for a place.</li>
+<li><b>OpenStreetMap</b> (tile.openstreetmap.org) receives requests for the map area you are viewing, but only when you open the map picker.</li>
+<li><b>Cloudflare cdnjs</b> (cdnjs.cloudflare.com) delivers the open-source Leaflet map library, but only when you open the map picker.</li>
 <li><b>NOAA Tides and Currents</b> (tidesandcurrents.noaa.gov) receives a tide station ID to return US tide predictions, and may receive a request for its list of stations.</li>
 </ul>
 <p>These services have their own privacy practices, which we do not control.</p>
 
 <h2>Location</h2>
-<p>The app asks for your device location only when you tap the location button, and only to add a nearby spot. The coordinates are saved as a spot on your device and are used in the requests described above. You can use the app without ever sharing your location.</p>
+<p>The app asks for your device location only when you tap a location button (in the settings or on the map picker), and only to add or move a spot. The coordinates are saved as a spot on your device and are used in the requests described above. You can use the app without ever sharing your location.</p>
 
 <h2>Hosting</h2>
 <p>The app is served from GitHub Pages. Like any web host, GitHub may keep standard server logs, such as IP addresses, when the app's files are loaded. See GitHub's privacy statement for details.</p>
