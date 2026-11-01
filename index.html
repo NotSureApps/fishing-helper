@@ -81,9 +81,10 @@ body.rec main{margin-top:42px}body.rec #logw{top:42px}
  <h2 class="st">Settings</h2>
  
  <h3 class="sh">Find a spot</h3>
- <p class="hint">Search, use your location, or pick on the map. Switch spots on the main page.</p>
+ <p class="hint">Search, use your location, or pick on the map to add a fishing spot.</p>
  <div class="srch"><input id="q" placeholder="Zip code, town or place"><button id="sq">Search</button><button id="loc">📍</button><button id="pickmap">Map</button></div><div id="res"></div>
- <h3 class="sh">My spots</h3>
+ <h3 class="sh">Fishing spots</h3>
+ <p class="hint">Weather comes from the spot's pin. Tides come from the nearest NOAA station, shown after the name. Tap Map to pick another station.</p>
  <div id="mys"></div>
  <h3 class="sh">Your limits</h3>
  <p class="hint">Saved separately for each spot.</p>
@@ -348,7 +349,7 @@ $('#pickmap').onclick=()=>openMap(-1);
 $('#mcancel').onclick=()=>{$('#mapw').hidden=true};
 $('#mnear').onclick=()=>{MSEL=null;stnDraw();if(PIN)mapInfo()};
 $('#mloc').onclick=()=>{if(!navigator.geolocation||!PIN)return;navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.latitude,p.coords.longitude];PIN.setLatLng(c);MAP.setView(c,11);MSEL=null;mapInfo()},()=>{$('#mmsg').textContent='Location is not available here.'})};
-$('#msave').onclick=async()=>{if(!PIN)return;if(MEDIT==-2){const q=PIN.getLatLng();if(LOG.active){LOG.active.pos={la:+q.lat.toFixed(5),lo:+q.lng.toFixed(5),acc:0,m:1};delete LOG.active.pw;lsave()}$('#mapw').hidden=true;rfish();return}const ll=PIN.getLatLng(),nm=$('#mname').value.trim()||'Pinned spot';$('#mmsg').textContent='Saving\u2026';
+$('#msave').onclick=async()=>{if(!PIN)return;if(MEDIT==-2){const q=PIN.getLatLng();if(LOG.active){LOG.active.pos={la:+q.lat.toFixed(5),lo:+q.lng.toFixed(5),acc:0,m:1};delete LOG.active.pw;lsave();placeSession(LOG.active,LOG.active.pos)}$('#mapw').hidden=true;rfish();return}const ll=PIN.getLatLng(),nm=$('#mname').value.trim()||'Pinned spot';$('#mmsg').textContent='Saving\u2026';
  const sp=await mkSpot(nm,ll.lat,ll.lng,MSEL);
  if(MEDIT>=0){const t=SPOTS[MEDIT],cur=t===SPOT;Object.assign(t,{n:sp.n,st:sp.st,lat:sp.lat,lon:sp.lon});fillSp(SPOTS.indexOf(SPOT));mine();$('#mapw').hidden=true;if(cur){if(restore()===null)sample();draw();live()}else draw()}
  else{SPOTS.push(sp);SPOT=sp;fillSp(SPOTS.length-1);mine();$('#mapw').hidden=true;go(false);if(restore()===null)sample();draw();live()}};
@@ -429,8 +430,9 @@ const find=id=>LOG.active&&LOG.active.id==id?LOG.active:LOG.sessions.find(x=>x.i
 // ---- Position ----
 // Exact phone position for a session and for every catch. Separate from the forecast spot: the spot only feeds weather and tides.
 // One GPS request at a time is fine. It runs in the background, so the buttons never wait for it.
+let LASTPOS=null;
 const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
- try{navigator.geolocation.getCurrentPosition(p=>ok({la:+p.coords.latitude.toFixed(5),lo:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy)}),()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:15000})}catch(e){ok(null)}});
+ try{navigator.geolocation.getCurrentPosition(p=>ok(LASTPOS={la:+p.coords.latitude.toFixed(5),lo:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy)}),()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:15000})}catch(e){ok(null)}});
 const fmtPos=p=>p.la.toFixed(4)+', '+p.lo.toFixed(4)+(p.m?' · set on map':' · ±'+p.acc+' m');
 // ---- Actions ----
 const rall=()=>{rfish();rlog();rsheet();rstrip()};
@@ -438,8 +440,8 @@ function logStart(){
  if(LOG.active)return;
  const now=Date.now();
  const a0=LOG.active={id:now.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:now,e:null,tz:TZOFF,c:[],bait:'',note:'',cond:snap(now),pos:null,pw:1};
- LSUM=null;NEAR=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
- getPos().then(p=>{if(!a0.pos)a0.pos=p;delete a0.pw;lsave();rfish()})}
+ LSUM=null;HERE=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
+ getPos().then(p=>{if(!a0.pos)a0.pos=p;delete a0.pw;lsave();rfish();if(a0.pos)return placeSession(a0,a0.pos)})}
 // The quick sheet after a catch. It closes by itself after 5 s, any tap on it keeps it open another 5 s.
 // The big CATCH button drains while the sheet is open, so you can see it will close and when. Any choice refills it.
 const SHMS=6000;let SHAT=0;
@@ -460,14 +462,31 @@ function addPast(date,start,hrs,n){
  const e=s0+Math.max(.25,hrs||2)*36e5,c=[];for(let i=0;i<n;i++)c.push({t:s0+(e-s0)*(i+1)/(n+1),sp:'',len:null,sz:'',cond:null});
  LOG.sessions.push({id:s0.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:s0,e,tz:TZOFF,c,bait:'',note:'',cond:null,past:1});
  LOG.sessions.sort((a,b)=>b.s-a.s);lsave();return true}
-// Before a session: if you stand closer to another saved spot than to the selected one, offer it. Only asks GPS when the permission is already granted.
-let NEAR=null,NDIS=0,NT=0;
+// ---- Fishing spots ----
+// One list of fishing spots. A session belongs to the saved spot within 0.5 mile of its position.
+// If there is none, a new spot is created there (tides from the nearest NOAA station) and you name it after the session.
+const NEARKM=.805;
+const spotAt=p=>{let b=null,bd=1e9;SPOTS.forEach(x=>{const d=km(p.la,p.lo,x.lat,x.lon);if(d<bd){bd=d;b=x}});return bd<=NEARKM?b:null};
+async function useSpot(sp){if(sp===SPOT)return;SPOT=sp;fillSp(SPOTS.indexOf(sp));if(restore()===null)sample();draw();await live()}
+async function placeSession(a,p){
+ let sp=spotAt(p);
+ if(!sp){sp=await mkSpot('New spot',p.la,p.lo);sp.draft=1;SPOTS.push(sp);fillSp(SPOTS.indexOf(SPOT));mine();save()}
+ a.sp={n:lname(sp),lat:sp.lat,lon:sp.lon};lsave();
+ await useSpot(sp);                                   // forecast follows the session
+ a.cond=snap(a.s)||a.cond;lsave();rfish()}
+// Before a session: where are you? Only asks GPS when the permission is already granted, so opening the app never prompts.
+let HERE=null,NT=0;
 async function checkNear(){
  if(LOG.active||Date.now()-NT<6e4||!navigator.geolocation)return;NT=Date.now();
  try{if(navigator.permissions){const r=await navigator.permissions.query({name:'geolocation'});if(r.state!='granted')return}else return}catch(e){return}
  const p=await getPos();if(!p||LOG.active)return;
- const d=x=>km(p.la,p.lo,x.lat,x.lon),cur=d(SPOT);let best=null;SPOTS.forEach((x,k)=>{if(x!==SPOT&&(!best||d(x)<d(SPOTS[best.k])))best={k}});
- NEAR=best&&!NDIS&&cur>8&&d(SPOTS[best.k])<cur?{k:best.k,cur:Math.round(cur*.62),to:Math.round(d(SPOTS[best.k])*.62)}:null;rfish()}
+ const sp=spotAt(p);HERE=sp?{n:lname(sp)}:{new:1};rfish();if(sp)await useSpot(sp);rfish()}
+// Naming card after a session at a new place.
+const draftOf=x=>x&&SPOTS.find(s=>s.draft&&s.lat==x.sp.lat&&s.lon==x.sp.lon);
+function nameSpot(d,name){
+ const old=lname(d);d.n=name+(d.n.match(TS)||[''])[0];delete d.draft;
+ LOG.sessions.concat(LOG.active?[LOG.active]:[]).forEach(x=>{if(x.sp.lat==d.lat&&x.sp.lon==d.lon)x.sp.n=name});
+ lsave();save();fillSp(SPOTS.indexOf(SPOT));mine();draw()}
 // ---- Fish tab ----
 function nowLine(){const s=snap(Date.now());
  if(!s)return DSRC=='sample'?'Forecast not loaded, so conditions won’t be saved. Open Forecast and tap Refresh.':'No forecast for right now.';
@@ -476,12 +495,13 @@ function lastLine(){const l=LOG.sessions.reduce((m,x)=>!m||x.s>m.s?x:m,null);ret
 const ago=ms=>{const m=Math.floor(ms/6e4);return m<1?'just now':m<60?m+' min ago':hm(ms)+' ago'},cntTxt=a=>cn(a.c.length)+(a.c.length?' · last '+ago(Date.now()-a.c[a.c.length-1].t):'');
 function rfish(){
  if(TAB!='fish')return;
- const a=LOG.active;if(a&&document.activeElement&&document.activeElement.id=='lbait')return;   // do not rebuild while typing
+ const a=LOG.active;const ae=document.activeElement;if(ae&&(ae.id=='lbait'||ae.id=='nsname'))return;   // do not rebuild while typing
  const head=`<div class="fh"><select id="spot2" aria-label="Spot"${a?' disabled':''}>${SPOTS.map((x,k)=>`<option value="${k}"${x===SPOT?' selected':''}>${esc2(lname(x))}</option>`).join('')}</select><button id="gear2" data-a="gear" aria-label="Settings">⚙️</button></div>`;
  let h;
  if(!a){const sv=LSUM&&find(LSUM);
-  const nr=NEAR&&SPOTS[NEAR.k];
-  h=(sv?`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv):'')+(nr?`<div class="lcard"><b>You’re ${NEAR.cur} mi from ${esc2(lname(SPOT))}.</b><div>${esc2(lname(nr))} is ${NEAR.to} mi away.</div><div class="row2"><button class="stopb" style="margin:0;color:var(--ac);border-color:var(--ac)" data-a="nearuse">Use ${esc2(lname(nr))}</button><button class="ib" data-a="nearkeep">Keep ${esc2(lname(SPOT))}</button></div></div>`:'')+`<div class="now">${nowLine()}</div><button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
+  const dr=draftOf(sv);
+  const ph=dr?`<div class="lcard"><b>New spot here?</b><div class="mu">Name it so your next sessions here group together.</div><input id="nsname" placeholder="Spot name"><div class="row2"><button class="bigx bigs" style="background:var(--ac);flex:1;margin:0" data-a="nsave">Save name</button><button class="ib" data-a="nskip">Skip</button></div></div>`:'';
+  h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${nowLine()}</div>${HERE?`<div class="posl" style="margin-top:-4px">📍 ${HERE.new?'New location · you can name it after the session':'You’re at <b>'+esc2(HERE.n)+'</b>'}</div>`:''}<button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
  else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><button class="giant" data-a="catch"><i class="dr${LSEL>=0?' go':''}" style="animation-delay:-${LSEL>=0?Date.now()-SHAT:0}ms"></i><span>+ CATCH</span></button>
   ${LSTOP?`<div class="conf"><button class="bigx" data-a="stop">Save session: ${a.c.length?cn(a.c.length):'no catches'}</button><button class="ib" data-a="nostop">Keep fishing</button></div>`:`<div class="row2"><button class="ib" data-a="undo1"${a.c.length?'':' disabled'}>Undo last</button><button class="stopb" data-a="askstop">Stop session</button></div>`}
   <input id="lbait" placeholder="Bait or lure (optional)" value="${esc2(a.bait)}">`;
@@ -595,8 +615,8 @@ function lclick(e){
  switch(d.a){
   case'start':logStart();break;
   case'pin':if(a)openMap(-2);break;
-  case'nearuse':{const k=NEAR.k;NEAR=null;SPOT=SPOTS[k];fillSp(k);if(restore()===null)sample();draw();live()}break;
-  case'nearkeep':NDIS=1;NEAR=null;rfish();break;
+  case'nsave':{const v=($('#nsname').value||'').trim().slice(0,40),dd=draftOf(LSUM&&find(LSUM));if(!dd)break;if(!v){say('Type a name, or tap Skip');break}nameSpot(dd,v);say('Spot saved');rfish()}break;
+  case'nskip':{const dd=draftOf(LSUM&&find(LSUM));if(dd)nameSpot(dd,'Unnamed spot');rfish()}break;
   case'catch':logCatch();break;
   case'undo1':if(a&&a.c.length){a.c.pop();LSEL=-1;lsave();say('Last catch removed');rall()}break;
   case'sp':edit(()=>{f.sp=f.sp==d.v?'':d.v});break;
@@ -641,7 +661,7 @@ function ext(m){const s=m.hourly.sea_level_height_msl.map(v=>v*3.281),T=[];for(l
 // Time zone offset of the spot, in seconds. The now-line must follow the spot, not your phone.
 let TZOFF=-new Date().getTimezoneOffset()*60;
 // Back in the app after 15 minutes? Refresh. Ne chipay: it works.
-let LAST=0,LIVEON=false,DSRC='sample';document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live()});
+let LAST=0,LIVEON=false,DSRC='sample';document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live();if(!document.hidden&&TAB=='fish')checkNear()});
 // Start: show cached data at once, then ask the network.
 fillTw();mine();if(restore()===null)sample();draw();live();ticker();checkNear();tab('fish');
 </script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))</script>
