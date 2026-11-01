@@ -42,7 +42,7 @@ a{color:var(--ac)}
 <p>The app saves the following on your device only. We never receive it.</p>
 <ul>
 <li>Your saved spots (names and coordinates)</li>
-<li>Your fishing log: the sessions you record, with times, catch counts, optional species, size and bait, and the weather, tide and moon conditions at the time. It never leaves your device unless you export it yourself</li>
+<li>Your fishing log: the sessions you record, with times, catch counts, optional species, size and bait, the weather, tide and moon conditions at the time, and the position of each session and each catch. It never leaves your device unless you export it yourself</li>
 <li>Your wind, rain, wave and current limits, your unit choice, and your chart display choices</li>
 <li>The last forecast the app downloaded for each spot, so it can show it when you are offline</li>
 <li>A copy of the app's own files, so it can open without a connection</li>
@@ -60,7 +60,8 @@ a{color:var(--ac)}
 <p>These services have their own privacy practices, which we do not control.</p>
 
 <h2>Location</h2>
-<p>The app asks for your device location only when you tap a location button (in the settings or on the map picker), and only to add or move a spot. The coordinates are saved as a spot on your device and are used in the requests described above. You can use the app without ever sharing your location.</p>
+<p>The app asks for your device location only to place your fishing sessions and catches on a map, or when you tap a location button to add a spot. When you start a session, and each time you log a catch, the app records your position (latitude, longitude and accuracy) in your fishing log. You can also place a session's pin by hand on the map. These positions are stored on your device only and are not sent to us or to any other service. You can refuse the permission and still use the app: sessions then have no position, and you can set one on the map yourself.</p>
+<p>The map tiles are requested from OpenStreetMap when you open a map, which reveals the map area you are viewing, not your exact position.</p>
 
 <h2>Hosting</h2>
 <p>The app is served from GitHub Pages. Like any web host, GitHub may keep standard server logs, such as IP addresses, when the app's files are loaded. See GitHub's privacy statement for details.</p>

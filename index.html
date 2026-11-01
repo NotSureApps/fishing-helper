@@ -64,7 +64,7 @@ body.rec main{margin-top:calc(40px + env(safe-area-inset-top,0px))}body.rec #log
 .row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}.stopb{margin-left:auto;background:none;color:var(--poor);border:2px solid var(--poor);padding:10px 16px;border-radius:12px}
 #fishv input{width:100%;margin:8px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
 #sheet{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:44;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 18px #0004;padding:4px 14px 8px;max-height:55vh;overflow:auto}#sheet[hidden]{display:none}#sheet .lcard{max-width:520px;margin:6px auto;padding:10px}.shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.shh .chp{margin:0;flex:none}.shh .chp button{padding:8px 14px}.chp.sc{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 0;padding:0 4px 4px}.chp.sc button{flex:none}
-#mapw{z-index:60}
+#mapw{z-index:60}#mapw.pm #mname,#mapw.pm #mnear{display:none}.posl{text-align:center;font-size:14px;color:var(--mu);margin:-6px 0 10px}.lnk{background:none;color:var(--ac);border:0;padding:6px 8px;font-size:14px;text-decoration:underline}.smap{height:200px;border-radius:12px;margin:6px 0;position:relative;z-index:0;overflow:hidden}
 .lh{font-size:20px;margin:2px 0 8px}
 #lbody{margin-top:12px}#lbody input,#lbody textarea{width:100%;margin:6px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}#lbody textarea{min-height:70px}
 .bigx{display:block;width:100%;min-height:56px;font-size:17px;border-radius:14px;margin:10px 0;background:var(--poor);color:#fff}.bigs{margin-top:10px}
@@ -99,7 +99,7 @@ body.rec main{margin-top:calc(40px + env(safe-area-inset-top,0px))}body.rec #log
  <div id="unit" class="tabs"></div>
  <p class="hint">Wind and current always show in knots.</p>
  <h3 class="sh">About</h3>
- <div class="about"><p><b>Forecasts are estimates.</b> Do not rely on this app for navigation, boating safety, or any decision where weather could put you at risk. Check official marine forecasts and local conditions before you go out.</p><p><b>Data sources</b><br>Weather, waves, currents and sea level: Open-Meteo.com.<br>US tide predictions: NOAA Tides and Currents.<br>Maps: OpenStreetMap contributors.<br>Tides outside the US are model estimates, not official tide tables.</p><p><b>Your data</b><br>Your spots, limits, settings, fishing log and last forecast are saved on this device only. Place searches and spot coordinates are sent to Open-Meteo to get forecasts.</p><p><a href="privacy.html">Privacy policy</a></p><p class="hint" style="margin:0">Not Sure Fishing Helper, version 1.0</p></div>
+ <div class="about"><p><b>Forecasts are estimates.</b> Do not rely on this app for navigation, boating safety, or any decision where weather could put you at risk. Check official marine forecasts and local conditions before you go out.</p><p><b>Data sources</b><br>Weather, waves, currents and sea level: Open-Meteo.com.<br>US tide predictions: NOAA Tides and Currents.<br>Maps: OpenStreetMap contributors.<br>Tides outside the US are model estimates, not official tide tables.</p><p><b>Your data</b><br>Your spots, limits, settings, fishing log (with the position of each session and catch) and last forecast are saved on this device only. Place searches and spot coordinates are sent to Open-Meteo to get forecasts.</p><p><a href="privacy.html">Privacy policy</a></p><p class="hint" style="margin:0">Not Sure Fishing Helper, version 1.0</p></div>
  
  
 </div>
@@ -113,10 +113,10 @@ body.rec main{margin-top:calc(40px + env(safe-area-inset-top,0px))}body.rec #log
 <nav id="nav"><button data-t="fish" aria-label="Fish"><svg viewBox="0 0 24 24"><path d="M3 12c4-6 11-7 15-2l3-3v10l-3-3c-4 5-11 4-15-2z"/><circle cx="16" cy="11" r=".8"/></svg>Fish</button><button data-t="fc" aria-label="Forecast"><svg viewBox="0 0 24 24"><path d="M3 18l5-6 4 3 5-8 4 4"/><path d="M3 21h18"/></svg>Forecast</button><button data-t="trips" aria-label="Sessions"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Sessions</button></nav>
 <!-- Map picker, full screen. Leaflet is loaded only when opened. -->
 <div id="mapw" hidden>
- <div class="mh"><button id="mcancel" class="alt3">← Back</button><b>Pick a spot</b></div>
+ <div class="mh"><button id="mcancel" class="alt3">← Back</button><b id="mtitle">Pick a spot</b></div>
  <div id="map"></div>
  <div class="ms">
-  <p class="hint" style="margin:0">Tap the map or drag the pin. Zoom in to see NOAA tide stations (blue dots) and tap one to use it.</p>
+  <p class="hint" id="mhint" style="margin:0">Tap the map or drag the pin. Zoom in to see NOAA tide stations (blue dots) and tap one to use it.</p>
   <div id="mmsg"></div>
   <div class="mrow"><input id="mname" placeholder="Spot name"><button id="mloc" aria-label="My location">📍</button></div>
   <div class="mrow"><button id="mnear" class="alt3">Use nearest station</button><button id="msave">Save spot</button></div>
@@ -328,25 +328,27 @@ function loadLeaflet(){return new Promise((ok,no)=>{if(window.L)return ok();cons
 // Build the spot object. Tide station farther than 100 miles is useless, so use the model (st=null)
 // unless the user picked the station by hand.
 async function mkSpot(n,la,lo,stn){const s=stn||await nearest(la,lo),d=Math.round(km(la,lo,s.lat,s.lng)*.62),far=!stn&&d>100;return{n:n+(far?' (tides: model)':' (tides: '+s.name+', '+d+' mi)'),st:far?null:s.id,lat:+la.toFixed(4),lon:+lo.toFixed(4)}}
-function mapInfo(){const ll=PIN.getLatLng();let s=MSEL;if(!s&&STN&&STN.length)s=STN.reduce((m,x)=>km(ll.lat,ll.lng,x.lat,x.lng)<km(ll.lat,ll.lng,m.lat,m.lng)?x:m);
+function mapInfo(){const ll=PIN.getLatLng();if(MEDIT==-2){$('#mmsg').textContent=ll.lat.toFixed(4)+', '+ll.lng.toFixed(4);return}let s=MSEL;if(!s&&STN&&STN.length)s=STN.reduce((m,x)=>km(ll.lat,ll.lng,x.lat,x.lng)<km(ll.lat,ll.lng,m.lat,m.lng)?x:m);
  const d=s?Math.round(km(ll.lat,ll.lng,s.lat,s.lng)*.62):0,far=s&&!MSEL&&d>100;
  $('#mmsg').textContent=ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+' \u00b7 '+(!s?'Tide station list not loaded':far?'No tide station nearby, so tides will be a model estimate':(MSEL?'Tide station: ':'Nearest tide station: ')+s.name+' ('+d+' mi)')}
-function stnDraw(){if(!MAP||!STN)return;STNL.clearLayers();if(MAP.getZoom()<8)return;const b=MAP.getBounds();let n=0;
+function stnDraw(){if(!MAP||!STN)return;STNL.clearLayers();if(MEDIT==-2||MAP.getZoom()<8)return;const b=MAP.getBounds();let n=0;
  for(const s of STN){if(!b.contains([s.lat,s.lng]))continue;const sel=MSEL&&MSEL.id==s.id,m=L.circleMarker([s.lat,s.lng],{radius:sel?9:7,weight:2,color:'#0a4a66',fillColor:sel?'#e0604f':'#4cb5e3',fillOpacity:.95});
   m.on('click',ev=>{L.DomEvent.stopPropagation(ev);MSEL=s;stnDraw();mapInfo()});m.bindTooltip(s.name);STNL.addLayer(m);if(++n>300)break}}
 async function openMap(i){MEDIT=i;MSEL=null;$('#mapw').hidden=false;$('#mmsg').textContent='Loading map\u2026';
  try{await loadLeaflet()}catch(e){$('#mmsg').textContent='Couldn\u2019t load the map. Check your connection.';return}
- const sp=i>=0?SPOTS[i]:SPOT,c=[sp.lat,sp.lon];
+ const P0=i==-2&&LOG.active&&LOG.active.pos,sp=i>=0?SPOTS[i]:P0?{lat:P0.la,lon:P0.lo}:SPOT,c=[sp.lat,sp.lon];
+ $('#mapw').classList.toggle('pm',i==-2);$('#mtitle').textContent=i==-2?'Session position':'Pick a spot';$('#msave').textContent=i==-2?'Save position':'Save spot';
+ $('#mhint').textContent=i==-2?'Tap the map or drag the pin to where you are fishing.':'Tap the map or drag the pin. Zoom in to see NOAA tide stations (blue dots) and tap one to use it.';
  if(!MAP){MAP=L.map('map',{preferCanvas:true}).setView(c,10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'\u00a9 OpenStreetMap contributors'}).addTo(MAP);STNL=L.layerGroup().addTo(MAP);
   PIN=L.marker(c,{draggable:true,icon:L.divIcon({html:'\U0001F4CD',className:'pin',iconSize:[30,30],iconAnchor:[15,28]})}).addTo(MAP);
   MAP.on('moveend',stnDraw);MAP.on('click',e=>{PIN.setLatLng(e.latlng);MSEL=null;stnDraw();mapInfo()});PIN.on('dragend',()=>{MSEL=null;mapInfo()})}
  else{PIN.setLatLng(c);MAP.setView(c,10)}
- setTimeout(()=>MAP.invalidateSize(),60);$('#mname').value=i>=0?sp.n.replace(TS,''):'';await getStn();stnDraw();mapInfo()}
+ setTimeout(()=>MAP.invalidateSize(),60);$('#mname').value=i>=0?sp.n.replace(TS,''):'';if(i!=-2)await getStn();stnDraw();mapInfo()}
 $('#pickmap').onclick=()=>openMap(-1);
 $('#mcancel').onclick=()=>{$('#mapw').hidden=true};
 $('#mnear').onclick=()=>{MSEL=null;stnDraw();if(PIN)mapInfo()};
 $('#mloc').onclick=()=>{if(!navigator.geolocation||!PIN)return;navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.latitude,p.coords.longitude];PIN.setLatLng(c);MAP.setView(c,11);MSEL=null;mapInfo()},()=>{$('#mmsg').textContent='Location is not available here.'})};
-$('#msave').onclick=async()=>{if(!PIN)return;const ll=PIN.getLatLng(),nm=$('#mname').value.trim()||'Pinned spot';$('#mmsg').textContent='Saving\u2026';
+$('#msave').onclick=async()=>{if(!PIN)return;if(MEDIT==-2){const q=PIN.getLatLng();if(LOG.active){LOG.active.pos={la:+q.lat.toFixed(5),lo:+q.lng.toFixed(5),acc:0,m:1};delete LOG.active.pw;lsave()}$('#mapw').hidden=true;rfish();return}const ll=PIN.getLatLng(),nm=$('#mname').value.trim()||'Pinned spot';$('#mmsg').textContent='Saving\u2026';
  const sp=await mkSpot(nm,ll.lat,ll.lng,MSEL);
  if(MEDIT>=0){const t=SPOTS[MEDIT],cur=t===SPOT;Object.assign(t,{n:sp.n,st:sp.st,lat:sp.lat,lon:sp.lon});fillSp(SPOTS.indexOf(SPOT));mine();$('#mapw').hidden=true;if(cur){if(restore()===null)sample();draw();live()}else draw()}
  else{SPOTS.push(sp);SPOT=sp;fillSp(SPOTS.length-1);mine();$('#mapw').hidden=true;go(false);if(restore()===null)sample();draw();live()}};
@@ -422,18 +424,26 @@ function snap(ms){
   hour:h,src:DSRC}}
 const aSnap=(a,ms)=>a.sp.lat==SPOT.lat&&a.sp.lon==SPOT.lon?snap(ms):null;
 const find=id=>LOG.active&&LOG.active.id==id?LOG.active:LOG.sessions.find(x=>x.id==id);
+// ---- Position ----
+// Exact phone position for a session and for every catch. Separate from the forecast spot: the spot only feeds weather and tides.
+// One GPS request at a time is fine. It runs in the background, so the buttons never wait for it.
+const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
+ try{navigator.geolocation.getCurrentPosition(p=>ok({la:+p.coords.latitude.toFixed(5),lo:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy)}),()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:15000})}catch(e){ok(null)}});
+const fmtPos=p=>p.la.toFixed(4)+', '+p.lo.toFixed(4)+(p.m?' · set on map':' · ±'+p.acc+' m');
 // ---- Actions ----
 const rall=()=>{rfish();rlog();rsheet();rstrip()};
 function logStart(){
  if(LOG.active)return;
  const now=Date.now();
- LOG.active={id:now.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:now,e:null,tz:TZOFF,c:[],bait:'',note:'',cond:snap(now)};
- LSUM=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall()}
+ const a0=LOG.active={id:now.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:now,e:null,tz:TZOFF,c:[],bait:'',note:'',cond:snap(now),pos:null,pw:1};
+ LSUM=null;NEAR=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
+ getPos().then(p=>{if(!a0.pos)a0.pos=p;delete a0.pw;lsave();rfish()})}
 // The quick sheet after a catch. It closes by itself after 5 s, any tap on it keeps it open another 5 s.
 function sheetOpen(i){LSEL=i;clearTimeout(SHT);SHT=setTimeout(()=>{LSEL=-1;rsheet()},5000)}
 function logCatch(){
  const a=LOG.active;if(!a)return;
- const now=Date.now();a.c.push({t:now,sp:'',len:null,keep:false,cond:aSnap(a,now)});
+ const now=Date.now(),c0={t:now,sp:'',len:null,keep:false,cond:aSnap(a,now),pos:null};a.c.push(c0);
+ getPos().then(p=>{if(p&&p.acc<=150){c0.pos=p;lsave()}});
  lsave();if(navigator.vibrate)navigator.vibrate(30);say('Catch '+a.c.length+' logged');sheetOpen(a.c.length-1);rall()}
 function logStop(){
  const a=LOG.active;if(!a)return;
@@ -445,6 +455,14 @@ function addPast(date,start,hrs,n){
  const e=s0+Math.max(.25,hrs||2)*36e5,c=[];for(let i=0;i<n;i++)c.push({t:s0+(e-s0)*(i+1)/(n+1),sp:'',len:null,keep:false,cond:null});
  LOG.sessions.push({id:s0.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:s0,e,tz:TZOFF,c,bait:'',note:'',cond:null,past:1});
  LOG.sessions.sort((a,b)=>b.s-a.s);lsave();return true}
+// Before a session: if you stand closer to another saved spot than to the selected one, offer it. Only asks GPS when the permission is already granted.
+let NEAR=null,NDIS=0,NT=0;
+async function checkNear(){
+ if(LOG.active||Date.now()-NT<6e4||!navigator.geolocation)return;NT=Date.now();
+ try{if(navigator.permissions){const r=await navigator.permissions.query({name:'geolocation'});if(r.state!='granted')return}else return}catch(e){return}
+ const p=await getPos();if(!p||LOG.active)return;
+ const d=x=>km(p.la,p.lo,x.lat,x.lon),cur=d(SPOT);let best=null;SPOTS.forEach((x,k)=>{if(x!==SPOT&&(!best||d(x)<d(SPOTS[best.k])))best={k}});
+ NEAR=best&&!NDIS&&cur>8&&d(SPOTS[best.k])<cur?{k:best.k,cur:Math.round(cur*.62),to:Math.round(d(SPOTS[best.k])*.62)}:null;rfish()}
 // ---- Fish tab ----
 function nowLine(){const s=snap(Date.now());
  if(!s)return DSRC=='sample'?'Forecast not loaded, so conditions won’t be saved. Open Forecast and tap Refresh.':'No forecast for right now.';
@@ -457,8 +475,9 @@ function rfish(){
  const head=`<div class="fh"><select id="spot2" aria-label="Spot"${a?' disabled':''}>${SPOTS.map((x,k)=>`<option value="${k}"${x===SPOT?' selected':''}>${esc2(lname(x))}</option>`).join('')}</select><button id="gear2" data-a="gear" aria-label="Settings">⚙️</button></div>`;
  let h;
  if(!a){const sv=LSUM&&find(LSUM);
-  h=(sv?`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv):'')+`<div class="now">${nowLine()}</div><button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
- else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><button class="giant" data-a="catch">+ CATCH</button>
+  const nr=NEAR&&SPOTS[NEAR.k];
+  h=(sv?`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv):'')+(nr?`<div class="lcard"><b>You’re ${NEAR.cur} mi from ${esc2(lname(SPOT))}.</b><div>${esc2(lname(nr))} is ${NEAR.to} mi away.</div><div class="row2"><button class="stopb" style="margin:0;color:var(--ac);border-color:var(--ac)" data-a="nearuse">Use ${esc2(lname(nr))}</button><button class="ib" data-a="nearkeep">Keep ${esc2(lname(SPOT))}</button></div></div>`:'')+`<div class="now">${nowLine()}</div><button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
+ else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><button class="giant" data-a="catch">+ CATCH</button>
   ${LSTOP?`<div class="conf"><button class="bigx" data-a="stop">Save session: ${a.c.length?cn(a.c.length):'no catches'}</button><button class="ib" data-a="nostop">Keep fishing</button></div>`:`<div class="row2"><button class="ib" data-a="undo1"${a.c.length?'':' disabled'}>Undo last</button><button class="stopb" data-a="askstop">Stop session</button></div>`}
   <input id="lbait" placeholder="Bait or lure (optional)" value="${esc2(a.bait)}">`;
  $('#fishv').innerHTML=`<div class="in">${head}${h}</div>`}
@@ -470,7 +489,7 @@ const stripTxt=a=>'● '+hmm(Date.now()-a.s)+' · '+cn(a.c.length)+' · tap to l
 function rstrip(){const a=LOG.active,s=$('#strip'),on=!!a&&TAB!='fish';s.hidden=!on;document.body.classList.toggle('rec',on);if(on)s.textContent=stripTxt(a)}
 function tick(){const a=LOG.active;if(!a)return;const t=$('#ltimer');if(t)t.textContent=hmm(Date.now()-a.s);const c=$('#cnt');if(c)c.textContent=cntTxt(a);const s=$('#strip');if(s&&!s.hidden)s.textContent=stripTxt(a)}
 function ticker(){clearInterval(TK);rstrip();TK=setInterval(tick,1000);if(TK.unref)TK.unref()}
-function tab(t){TAB=t;if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.remove('s');$('#gear').classList.remove('on');scrollTo(0,0);rall()}
+function tab(t){TAB=t;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.remove('s');$('#gear').classList.remove('on');scrollTo(0,0);rall()}
 // ---- Sessions tab ----
 function condLine(c){if(!c)return'<span class="mu">No conditions saved</span>';
  return [c.tide+' tide',Math.round(c.wind)+' kn wind',tp(c.temp),c.light,phaseOf(c.moon)[1]].join(' · ')}
@@ -495,7 +514,8 @@ function vHist(){
  let h=LOG.sessions.length?'':'<p class="mu">No sessions yet. Your first one will show up here.</p>';
  h+=LOG.sessions.map(x=>{const open=LOPEN==x.id;
   return `<div class="lrow" data-a="open" data-id="${x.id}">${sumCard(x)}</div>`+(open?`<div class="lcard"><textarea id="lnote" data-id="${x.id}" placeholder="Notes">${esc2(x.note||'')}</textarea>
-   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}"><span>${stm(f.t)} · ${esc2(f.sp||'catch')}${f.len?' · '+f.len+'″':''}${f.keep?' · kept':''}</span><span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
+   ${x.pos||x.c.some(f=>f.pos)?`<div class="mu" style="margin-top:8px">Catch spots${x.pos?' · '+fmtPos(x.pos):''}</div><div id="smap" class="smap"></div>`:''}
+   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}"><span>${stm(f.t)} · ${esc2(f.sp||'catch')}${f.len?' · '+f.len+'″':''}${f.keep?' · kept':''}${f.pos?' · 📍':''}</span><span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
    ${LCONF==x.id?`<button class="bigx" data-a="del" data-id="${x.id}">Really delete this session</button><button class="ib" data-a="nodel">Cancel</button>`:`<button class="ib" data-a="askdel" data-id="${x.id}">Delete session</button>`}</div>`:'')}).join('');
  h+=`<button class="ib" data-a="past">${LPAST?'Cancel':'+ Add a past session'}</button>${LPAST?vPastForm():''}`;
  if(LOG.sessions.length)h+=`<button class="ib" data-a="csv">Export CSV</button><button class="ib" data-a="json">Export backup (JSON)</button>`;
@@ -526,7 +546,7 @@ function vIns(){
  return h+shareCard()}
 // What a shared record would look like. Nothing is sent yet; sharing is not built.
 function anonRecord(x){
- return{area:[Math.round(x.sp.lat*10)/10,Math.round(x.sp.lon*10)/10],month:new Date(x.s).toISOString().slice(0,7),hours:r1(((x.e||x.s)-x.s)/36e5),catches:x.c.length,
+ const q=x.pos?[x.pos.la,x.pos.lo]:[x.sp.lat,x.sp.lon];return{area:[Math.round(q[0]*10)/10,Math.round(q[1]*10)/10],month:new Date(x.s).toISOString().slice(0,7),hours:r1(((x.e||x.s)-x.s)/36e5),catches:x.c.length,
   species:[...new Set(x.c.map(f=>f.sp).filter(Boolean))],bait:x.bait||null,cond:x.cond?{tide:x.cond.tide,light:x.cond.light,wind:x.cond.wind,temp:x.cond.temp,wave:x.cond.wave,rain:x.cond.rain,moon:x.cond.moon}:null}}
 function shareCard(){
  const x=LOG.sessions.find(y=>y.cond);if(!x)return'';
@@ -534,10 +554,10 @@ function shareCard(){
 // ---- Export ----
 function csv(){
  const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
- const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','catch_time','species','length_in','kept','bait','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
+ const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','pos_lat','pos_lon','pos_acc_m','catch_time','catch_lat','catch_lon','catch_acc_m','species','length_in','kept','bait','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
  const rows=[hd.join(',')];
- for(const x of LOG.sessions){const base=[x.id,new Date(x.s).toISOString().slice(0,10),new Date(x.s).toISOString(),x.sp.n,x.sp.lat,x.sp.lon,r1((x.e-x.s)/36e5),x.c.length];
-  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f?f.sp:'',f&&f.len||'',f?(f.keep?1:0):'',x.bait,...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
+ for(const x of LOG.sessions){const base=[x.id,new Date(x.s).toISOString().slice(0,10),new Date(x.s).toISOString(),x.sp.n,x.sp.lat,x.sp.lon,r1((x.e-x.s)/36e5),x.c.length,x.pos?x.pos.la:'',x.pos?x.pos.lo:'',x.pos?x.pos.acc:''];
+  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f&&f.pos?f.pos.la:'',f&&f.pos?f.pos.lo:'',f&&f.pos?f.pos.acc:'',f?f.sp:'',f&&f.len||'',f?(f.keep?1:0):'',x.bait,...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
   if(!x.c.length)line(null,x.cond);else x.c.forEach(f=>line(f,f.cond||x.cond))}
  return rows.join('\n')}
 function dl(name,text,type){try{const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2e3)}catch(e){say('⚠ Couldn’t export')}}
@@ -546,7 +566,18 @@ function rlog(){
  $('#lt').innerHTML=[['hist','Sessions'],['ins','Insights']].map(([k,n])=>`<button class="tab${LV==k?' on':''}" data-lt="${k}">${n}</button>`).join('');
  const k=document.activeElement&&document.activeElement.id,b=$('#lbody');
  if(k&&/^(lnote|pd|ps|ph|pn)$/.test(k)&&b.contains(document.activeElement))return;   // do not rebuild while typing
- b.innerHTML=LV=='ins'?vIns():vHist()}
+ b.innerHTML=LV=='ins'?vIns():vHist();
+ if(LV!='ins'&&LOPEN)smap(find(LOPEN))}
+// Small map of one session: big dot = session position, small dots = catches.
+let SM=null;
+async function smap(x){const el=$('#smap');if(!el||!x)return;
+ try{await loadLeaflet()}catch(e){el.textContent='The map needs a connection.';return}
+ if($('#smap')!==el)return;if(SM){try{SM.remove()}catch(e){}SM=null}
+ const pts=[];if(x.pos)pts.push([x.pos.la,x.pos.lo]);x.c.forEach(f=>f.pos&&pts.push([f.pos.la,f.pos.lo]));if(!pts.length)return;
+ SM=L.map(el,{zoomControl:false,scrollWheelZoom:false});L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(SM);
+ if(x.pos)L.circleMarker([x.pos.la,x.pos.lo],{radius:10,weight:3,color:'#0a4a66',fillColor:'#4cb5e3',fillOpacity:.9}).bindTooltip('Session position').addTo(SM);
+ x.c.forEach((f,i)=>f.pos&&L.circleMarker([f.pos.la,f.pos.lo],{radius:6,weight:2,color:'#fff',fillColor:'#1e9e5a',fillOpacity:1}).bindTooltip('Catch '+(i+1)+(f.sp?' · '+f.sp:'')).addTo(SM));
+ SM.fitBounds(pts,{padding:[30,30],maxZoom:17});setTimeout(()=>SM&&SM.invalidateSize(),60)}
 // ---- Events: one click handler for all log screens ----
 function lclick(e){
  const lt=e.target.closest('[data-lt]');if(lt){LV=lt.dataset.lt;rlog();return}
@@ -554,6 +585,9 @@ function lclick(e){
  const edit=fn=>{if(f){fn();lsave();if(d.sh)sheetOpen(i);rsheet();rlog()}};
  switch(d.a){
   case'start':logStart();break;
+  case'pin':if(a)openMap(-2);break;
+  case'nearuse':{const k=NEAR.k;NEAR=null;SPOT=SPOTS[k];fillSp(k);if(restore()===null)sample();draw();live()}break;
+  case'nearkeep':NDIS=1;NEAR=null;rfish();break;
   case'catch':logCatch();break;
   case'undo1':if(a&&a.c.length){a.c.pop();LSEL=-1;lsave();say('Last catch removed');rall()}break;
   case'sp':edit(()=>{f.sp=f.sp==d.v?'':d.v});break;
@@ -599,6 +633,6 @@ let TZOFF=-new Date().getTimezoneOffset()*60;
 // Back in the app after 15 minutes? Refresh. Ne chipay: it works.
 let LAST=0,LIVEON=false,DSRC='sample';document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live()});
 // Start: show cached data at once, then ask the network.
-fillTw();mine();if(restore()===null)sample();draw();live();ticker();tab('fish');
+fillTw();mine();if(restore()===null)sample();draw();live();ticker();checkNear();tab('fish');
 </script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))</script>
 </body></html>
