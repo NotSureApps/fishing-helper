@@ -60,10 +60,10 @@ body.rec main{margin-top:42px}body.rec #logw{top:42px}
 .fh{display:flex;gap:8px;align-items:center}.fh select{flex:1;min-width:0;font-size:16px;font-weight:600;padding:12px}.fh button{width:48px;height:48px;font-size:20px;padding:0}
 .now{margin:14px 2px 10px;font-size:16px;font-weight:600;text-align:center}.last{margin:12px 2px;text-align:center;color:var(--mu);font-size:15px}
 .giant{display:block;width:100%;height:42vh;min-height:210px;font-size:38px;line-height:1.15;letter-spacing:.5px;font-weight:800;border-radius:24px;background:var(--good);color:#06210f;box-shadow:0 4px 16px #0003}
-.conf{margin:12px 0 4px}.conf .bigx{margin:0 0 8px}.tmr{font-size:46px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:14px 0 0}.sub{text-align:center;color:var(--mu);font-size:15px;margin:2px 0 12px}
+.conf{margin:12px 0 4px}.conf .bigx{margin:0 0 8px}.giant{position:relative;overflow:hidden}.giant span{position:relative}.dr{position:absolute;inset:0;background:rgba(255,255,255,.38);transform:scaleY(0);transform-origin:bottom}.dr.go{animation:drain 6s linear forwards}@keyframes drain{from{transform:scaleY(1)}to{transform:scaleY(0)}}.tmr{font-size:46px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:14px 0 0}.sub{text-align:center;color:var(--mu);font-size:15px;margin:2px 0 12px}
 .row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}.stopb{margin-left:auto;background:none;color:var(--poor);border:2px solid var(--poor);padding:10px 16px;border-radius:12px}
 #fishv input{width:100%;margin:8px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
-#sheet{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:44;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 18px #0004;padding:4px 14px 8px;max-height:55vh;overflow:auto}#sheet[hidden]{display:none}#sheet .lcard{max-width:520px;margin:6px auto;padding:10px}.shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.shh .chp{margin:0;flex:none}.shh .chp button{padding:8px 14px}.chp.sc{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 0;padding:0 4px 4px}.chp.sc button{flex:none}
+#sheet{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:44;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 18px #0004;padding:4px 14px 8px;max-height:55vh;overflow:auto}#sheet[hidden]{display:none}#sheet .lcard{max-width:520px;margin:6px auto;padding:10px}.shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.shh .chp{margin:0;flex:none}.shh .chp button{padding:8px 14px}.szr{flex-wrap:nowrap;align-items:center}.szr button{flex:none}.lenin{width:84px!important;margin:0!important;padding:10px!important;text-align:center}.chp.sc{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 0;padding:0 4px 4px}.chp.sc button{flex:none}
 #mapw{z-index:60}#mapw.pm #mname,#mapw.pm #mnear{display:none}.posl{text-align:center;font-size:14px;color:var(--mu);margin:-6px 0 10px}.lnk{background:none;color:var(--ac);border:0;padding:6px 8px;font-size:14px;text-decoration:underline}.smap{height:200px;border-radius:12px;margin:6px 0;position:relative;z-index:0;overflow:hidden}
 .lh{font-size:20px;margin:2px 0 8px}
 #lbody{margin-top:12px}#lbody input,#lbody textarea{width:100%;margin:6px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}#lbody textarea{min-height:70px}
@@ -400,7 +400,9 @@ $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(c){OPEN=+c.dataset.
 const LOGK='nsfh-log1';
 let LOG={sessions:[],active:null},TAB='fish',LV='hist',LSUM=null,LOPEN=null,LCONF=null,LSTOP=0,LPAST=0,LSEL=-1,LHS='',SHT=0,TK=0,FROM=null;
 const SPC=['Striped bass','Bluefish','Fluke','Flounder','Sea bass','Porgy','Blackfish','Weakfish','Trout','Redfish','Snapper','Other'];
-try{const j=JSON.parse(localStorage.getItem(LOGK)||'null');if(j&&j.sessions){LOG=j;LOG.active=LOG.active||null}}catch(e){}
+try{const j=JSON.parse(localStorage.getItem(LOGK)||'null');if(j&&j.sessions){LOG=j;LOG.active=LOG.active||null;
+ // older catches had a Kept flag: it becomes size class Keeper
+ [...LOG.sessions,...(LOG.active?[LOG.active]:[])].forEach(x=>x.c.forEach(f=>{if(f.keep&&!f.sz)f.sz='keeper';delete f.keep}))}}catch(e){}
 function lsave(){try{localStorage.setItem(LOGK,JSON.stringify(LOG));return true}catch(e){say('⚠ Couldn’t save the log on this device');return false}}
 // Small toast, same one as the settings use.
 function say(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(TT);TT=setTimeout(()=>t.classList.remove('show'),ms||1600)}
@@ -439,12 +441,15 @@ function logStart(){
  LSUM=null;NEAR=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
  getPos().then(p=>{if(!a0.pos)a0.pos=p;delete a0.pw;lsave();rfish()})}
 // The quick sheet after a catch. It closes by itself after 5 s, any tap on it keeps it open another 5 s.
-function sheetOpen(i){LSEL=i;clearTimeout(SHT);SHT=setTimeout(()=>{LSEL=-1;rsheet()},5000)}
+// The big CATCH button drains while the sheet is open, so you can see it will close and when. Any choice refills it.
+const SHMS=6000;let SHAT=0;
+const drain=on=>{const e=document.querySelector('.dr');if(!e||!e.classList)return;e.classList.remove('go');if(on){void e.offsetWidth;e.style.animationDelay='0ms';e.classList.add('go')}};
+function sheetOpen(i){LSEL=i;SHAT=Date.now();clearTimeout(SHT);SHT=setTimeout(()=>{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('lenin')&&ae.dataset.sh){sheetOpen(LSEL);return}LSEL=-1;drain(0);rsheet()},SHMS);drain(1)}
 function logCatch(){
  const a=LOG.active;if(!a)return;
- const now=Date.now(),c0={t:now,sp:'',len:null,keep:false,cond:aSnap(a,now),pos:null};a.c.push(c0);
+ const now=Date.now(),c0={t:now,sp:'',len:null,sz:'',cond:aSnap(a,now),pos:null};a.c.push(c0);
  getPos().then(p=>{if(p&&p.acc<=150){c0.pos=p;lsave()}});
- lsave();if(navigator.vibrate)navigator.vibrate(30);say('Catch '+a.c.length+' logged');sheetOpen(a.c.length-1);rall()}
+ lsave();if(navigator.vibrate)navigator.vibrate(30);sheetOpen(a.c.length-1);rall()}
 function logStop(){
  const a=LOG.active;if(!a)return;
  a.e=Date.now();LOG.sessions.unshift(a);LOG.active=null;LSUM=a.id;LSTOP=0;LSEL=-1;clearTimeout(SHT);lsave();rall()}
@@ -452,7 +457,7 @@ function delSession(id){LOG.sessions=LOG.sessions.filter(x=>x.id!=id);LOPEN=null
 // Add a session you forgot to log. No conditions are stored for it: the forecast cannot look back.
 function addPast(date,start,hrs,n){
  const s0=new Date(date+'T'+(start||'06:00')).getTime();if(isNaN(s0))return false;
- const e=s0+Math.max(.25,hrs||2)*36e5,c=[];for(let i=0;i<n;i++)c.push({t:s0+(e-s0)*(i+1)/(n+1),sp:'',len:null,keep:false,cond:null});
+ const e=s0+Math.max(.25,hrs||2)*36e5,c=[];for(let i=0;i<n;i++)c.push({t:s0+(e-s0)*(i+1)/(n+1),sp:'',len:null,sz:'',cond:null});
  LOG.sessions.push({id:s0.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:s0,e,tz:TZOFF,c,bait:'',note:'',cond:null,past:1});
  LOG.sessions.sort((a,b)=>b.s-a.s);lsave();return true}
 // Before a session: if you stand closer to another saved spot than to the selected one, offer it. Only asks GPS when the permission is already granted.
@@ -477,7 +482,7 @@ function rfish(){
  if(!a){const sv=LSUM&&find(LSUM);
   const nr=NEAR&&SPOTS[NEAR.k];
   h=(sv?`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv):'')+(nr?`<div class="lcard"><b>You’re ${NEAR.cur} mi from ${esc2(lname(SPOT))}.</b><div>${esc2(lname(nr))} is ${NEAR.to} mi away.</div><div class="row2"><button class="stopb" style="margin:0;color:var(--ac);border-color:var(--ac)" data-a="nearuse">Use ${esc2(lname(nr))}</button><button class="ib" data-a="nearkeep">Keep ${esc2(lname(SPOT))}</button></div></div>`:'')+`<div class="now">${nowLine()}</div><button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
- else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><button class="giant" data-a="catch">+ CATCH</button>
+ else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><button class="giant" data-a="catch"><i class="dr${LSEL>=0?' go':''}" style="animation-delay:-${LSEL>=0?Date.now()-SHAT:0}ms"></i><span>+ CATCH</span></button>
   ${LSTOP?`<div class="conf"><button class="bigx" data-a="stop">Save session: ${a.c.length?cn(a.c.length):'no catches'}</button><button class="ib" data-a="nostop">Keep fishing</button></div>`:`<div class="row2"><button class="ib" data-a="undo1"${a.c.length?'':' disabled'}>Undo last</button><button class="stopb" data-a="askstop">Stop session</button></div>`}
   <input id="lbait" placeholder="Bait or lure (optional)" value="${esc2(a.bait)}">`;
  $('#fishv').innerHTML=`<div class="in">${head}${h}</div>`}
@@ -494,14 +499,18 @@ function tab(t){TAB=t;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}L
 function condLine(c){if(!c)return'<span class="mu">No conditions saved</span>';
  return [c.tide+' tide',Math.round(c.wind)+' kn wind',tp(c.temp),c.light,phaseOf(c.moon)[1]].join(' · ')}
 // Species and size chips for one catch. sh=1 when shown in the quick sheet.
+const SZ=[['short','Short'],['keeper','Keeper'],['pb','PB']],szName=k=>(SZ.find(z=>z[0]==k)||[0,''])[1];
+// Length is stored in inches. The box shows cm when units are metric.
+const lenShow=l=>l==null?'':UN=='m'?Math.round(l*2.54):l,lenParse=v=>{v=parseFloat(v);return isNaN(v)||v<=0?null:+(UN=='m'?v/2.54:v).toFixed(1)};
 function chips(x,i,sh){
  const f=x.c[i];if(!f)return'';const b=`data-id="${x.id}" data-i="${i}"${sh?' data-sh="1"':''}`,
   sp=SPC.map(n=>`<button class="${f.sp==n?'on':''}" data-a="sp" ${b} data-v="${esc2(n)}">${n}</button>`).join(''),
-  sz=[12,16,20,24,28,32,36,40].map(n=>`<button class="${f.len==n?'on':''}" data-a="len" ${b} data-v="${n}">${UN=='m'?Math.round(n*2.54)+' cm':n+'″'}</button>`).join(''),
-  act=`<button class="${f.keep?'on':''}" data-a="keep" ${b}>Kept</button><button data-a="${sh?'closesheet':'rm'}" ${b}>${sh?'Done':'Remove'}</button>`;
- // In the quick sheet the rows scroll sideways, so the sheet stays short and the CATCH button stays visible.
- return sh?`<div class="lcard sht"><div class="shh"><span class="mu">Catch ${i+1} · ${stm(f.t)} · optional</span><span class="chp">${act}</span></div><div class="chp sc">${sp}</div><div class="chp sc">${sz}</div></div>`
-  :`<div class="lcard"><div class="mu">Catch ${i+1} · ${stm(f.t)}</div><div class="chp">${sp}</div><div class="chp">${sz}${act}</div></div>`}
+  sz=SZ.map(([k,n])=>`<button class="${f.sz==k?'on':''}" data-a="sz" ${b} data-v="${k}">${n}</button>`).join('')+
+   `<input class="lenin" id="lenin${sh?'s':'h'}" type="number" inputmode="decimal" min="0" max="300" step="0.5" placeholder="${UN=='m'?'cm':'in'}" aria-label="Size in ${UN=='m'?'centimeters':'inches'}" value="${lenShow(f.len)}" ${b}>`,
+  done=`<button data-a="${sh?'closesheet':'rm'}" ${b}>${sh?'Done':'Remove'}</button>`;
+ // In the quick sheet the species row scrolls sideways, so the sheet stays short and the CATCH button stays visible.
+ return sh?`<div class="lcard sht"><div class="shh"><span class="mu">Catch ${i+1} · ${stm(f.t)} · optional</span><span class="chp">${done}</span></div><div class="chp sc">${sp}</div><div class="chp szr">${sz}</div></div>`
+  :`<div class="lcard"><div class="mu">Catch ${i+1} · ${stm(f.t)}</div><div class="chp">${sp}</div><div class="chp szr">${sz}</div><div class="chp">${done}</div></div>`}
 function vPastForm(){const t=new Date().toISOString().slice(0,10);
  return `<div class="lcard"><label class="mu">Date</label><input id="pd" type="date" value="${t}" max="${t}">
  <label class="mu">Started</label><input id="ps" type="time" value="06:00"><label class="mu">Hours fished</label><input id="ph" type="number" value="3" min="0.25" max="24" step="0.25">
@@ -515,7 +524,7 @@ function vHist(){
  h+=LOG.sessions.map(x=>{const open=LOPEN==x.id;
   return `<div class="lrow" data-a="open" data-id="${x.id}">${sumCard(x)}</div>`+(open?`<div class="lcard"><textarea id="lnote" data-id="${x.id}" placeholder="Notes">${esc2(x.note||'')}</textarea>
    ${x.pos||x.c.some(f=>f.pos)?`<div class="mu" style="margin-top:8px">Catch spots${x.pos?' · '+fmtPos(x.pos):''}</div><div id="smap" class="smap"></div>`:''}
-   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}"><span>${stm(f.t)} · ${esc2(f.sp||'catch')}${f.len?' · '+f.len+'″':''}${f.keep?' · kept':''}${f.pos?' · 📍':''}</span><span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
+   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}"><span>${stm(f.t)} · ${esc2(f.sp||'catch')}${f.sz?' · '+szName(f.sz):''}${f.len?' · '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}${f.pos?' · 📍':''}</span><span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
    ${LCONF==x.id?`<button class="bigx" data-a="del" data-id="${x.id}">Really delete this session</button><button class="ib" data-a="nodel">Cancel</button>`:`<button class="ib" data-a="askdel" data-id="${x.id}">Delete session</button>`}</div>`:'')}).join('');
  h+=`<button class="ib" data-a="past">${LPAST?'Cancel':'+ Add a past session'}</button>${LPAST?vPastForm():''}`;
  if(LOG.sessions.length)h+=`<button class="ib" data-a="csv">Export CSV</button><button class="ib" data-a="json">Export backup (JSON)</button>`;
@@ -554,10 +563,10 @@ function shareCard(){
 // ---- Export ----
 function csv(){
  const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
- const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','pos_lat','pos_lon','pos_acc_m','catch_time','catch_lat','catch_lon','catch_acc_m','species','length_in','kept','bait','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
+ const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','pos_lat','pos_lon','pos_acc_m','catch_time','catch_lat','catch_lon','catch_acc_m','species','length_in','size_class','bait','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
  const rows=[hd.join(',')];
  for(const x of LOG.sessions){const base=[x.id,new Date(x.s).toISOString().slice(0,10),new Date(x.s).toISOString(),x.sp.n,x.sp.lat,x.sp.lon,r1((x.e-x.s)/36e5),x.c.length,x.pos?x.pos.la:'',x.pos?x.pos.lo:'',x.pos?x.pos.acc:''];
-  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f&&f.pos?f.pos.la:'',f&&f.pos?f.pos.lo:'',f&&f.pos?f.pos.acc:'',f?f.sp:'',f&&f.len||'',f?(f.keep?1:0):'',x.bait,...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
+  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f&&f.pos?f.pos.la:'',f&&f.pos?f.pos.lo:'',f&&f.pos?f.pos.acc:'',f?f.sp:'',f&&f.len||'',f&&f.sz||'',x.bait,...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
   if(!x.c.length)line(null,x.cond);else x.c.forEach(f=>line(f,f.cond||x.cond))}
  return rows.join('\n')}
 function dl(name,text,type){try{const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2e3)}catch(e){say('⚠ Couldn’t export')}}
@@ -565,7 +574,7 @@ function rlog(){
  if(TAB!='trips')return;
  $('#lt').innerHTML=[['hist','Sessions'],['ins','Insights']].map(([k,n])=>`<button class="tab${LV==k?' on':''}" data-lt="${k}">${n}</button>`).join('');
  const k=document.activeElement&&document.activeElement.id,b=$('#lbody');
- if(k&&/^(lnote|pd|ps|ph|pn)$/.test(k)&&b.contains(document.activeElement))return;   // do not rebuild while typing
+ if(k&&/^(lnote|pd|ps|ph|pn|leninh)$/.test(k)&&b.contains(document.activeElement))return;   // do not rebuild while typing
  b.innerHTML=LV=='ins'?vIns():vHist();
  if(LV!='ins'&&LOPEN)smap(find(LOPEN))}
 // Small map of one session: big dot = session position, small dots = catches.
@@ -591,10 +600,9 @@ function lclick(e){
   case'catch':logCatch();break;
   case'undo1':if(a&&a.c.length){a.c.pop();LSEL=-1;lsave();say('Last catch removed');rall()}break;
   case'sp':edit(()=>{f.sp=f.sp==d.v?'':d.v});break;
-  case'len':edit(()=>{f.len=f.len==+d.v?null:+d.v});break;
-  case'keep':edit(()=>{f.keep=!f.keep});break;
+  case'sz':edit(()=>{f.sz=f.sz==d.v?'':d.v});break;
   case'rm':if(f){x.c.splice(i,1);LHS='';lsave();rlog()}break;
-  case'closesheet':LSEL=-1;clearTimeout(SHT);rsheet();break;
+  case'closesheet':LSEL=-1;clearTimeout(SHT);drain(0);rsheet();break;
   case'askstop':LSTOP=1;rfish();break;
   case'nostop':LSTOP=0;rfish();break;
   case'stop':logStop();break;
@@ -613,7 +621,9 @@ function lclick(e){
 $('#nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b)tab(b.dataset.t)};
 $('#fishv').addEventListener('change',e=>{if(e.target.id=='spot2'){const k=+e.target.value;SPOT=SPOTS[k];fillSp(k);if(restore()===null)sample();draw();live()}});
 $('#fishv').addEventListener('input',e=>{if(e.target.id=='lbait'&&LOG.active){LOG.active.bait=e.target.value.slice(0,60);lsave()}});
-$('#logw').addEventListener('input',e=>{const t=e.target;if(t.id=='lnote'){const x=find(t.dataset.id);if(x){x.note=t.value.slice(0,500);lsave()}}});
+const lenInput=e=>{const t=e.target;if(!t.classList||!t.classList.contains('lenin'))return;const x=find(t.dataset.id),f=x&&x.c[+t.dataset.i];if(!f)return;f.len=lenParse(t.value);lsave();if(t.dataset.sh)sheetOpen(+t.dataset.i)};
+$('#sheet').addEventListener('input',lenInput);$('#sheet').addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('lenin'))sheetOpen(+e.target.dataset.i)});
+$('#logw').addEventListener('input',e=>{lenInput(e);const t=e.target;if(t.id=='lnote'){const x=find(t.dataset.id);if(x){x.note=t.value.slice(0,500);lsave()}}});
 // ---- Storage ----
 // Settings and spots stay on the device only. v:3 is the format version. Change the format, bump the version.
 function save(){try{localStorage.setItem('nsfh1',JSON.stringify({LIM,RL,WL,TL,WM,DH,EH,v:3,UN,sp:SPOT.n,sl:SPOTS}));SAVED=true}catch(e){SAVED=false}}
