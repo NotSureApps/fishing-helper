@@ -43,6 +43,7 @@ svg{width:100%;height:auto;margin-top:8px;display:block}
 .hfair{fill:var(--fair);opacity:.2}.hpoor{fill:var(--poor);opacity:.14}
 .aw{fill:var(--wd);opacity:.18}.av{fill:#9b6bf2;opacity:.2}.at{fill:#e0604f;opacity:.18}.ac{fill:#14b8a6;opacity:.2}
 .cl{stroke:var(--ac);stroke-width:2}.ch{fill:var(--ac);stroke:var(--card);stroke-width:2}svg[data-c]{touch-action:pan-y;cursor:ew-resize}.rd{margin-top:8px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;font-size:15px;line-height:1.4;min-height:44px}.rd b{margin-right:8px}.fl-fair{color:var(--fair);font-weight:600}.fl-poor{color:var(--poor);font-weight:600}
+.wb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}.wb .tab{flex:1 1 auto;padding:9px 8px;font-size:13px}.wsel{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--mu)}.tw select{padding:8px 6px;font-size:14px}.dim{fill:var(--card);opacity:.65;pointer-events:none}
 </style></head>
 <body><!-- Main page: banner, spot picker, day boxes, details. Settings is hidden until the gear is pressed. -->
 <main>
@@ -62,6 +63,10 @@ svg{width:100%;height:auto;margin-top:8px;display:block}
  <label>Max rain chance <input id="rl" type="range" min="0" max="100" step="5" value="50"><b id="rlv">50%</b></label>
  <label>Max waves <input id="wl" type="range" min="1" max="6" step=".5" value="3"><b id="wlv">3 ft</b></label>
  <label>Min temp <input id="tl" type="range" min="10" max="80" step="5" value="40"><b id="tlv">40°F</b></label>
+ <h3 class="sh">Time windows</h3>
+ <p class="hint">Hours behind the Day and Evening buttons on the forecast.</p>
+ <label class="tw">Day <span class="wsel"><select id="d1" aria-label="Day start"></select> to <select id="d2" aria-label="Day end"></select></span></label>
+ <label class="tw">Evening <span class="wsel"><select id="e1" aria-label="Evening start"></select> to <select id="e2" aria-label="Evening end"></select></span></label>
  <h3 class="sh">Units</h3>
  <div id="unit" class="tabs"></div>
  <p class="hint">Wind and current always show in knots.</p>
@@ -90,14 +95,16 @@ svg{width:100%;height:auto;margin-top:8px;display:block}
 // Spots: only one by default, user adds the rest. st=null means no NOAA station, tides then come from the model.
 const SPOTS=[{n:"Reykjavik, Iceland",st:null,lat:64.147,lon:-21.94}];
 // Global state. Yes, globals. App is small, we do not need architecture here.
-let VIEW="tide",SPOT=SPOTS[0],LIM=15,RL=50,WL=3,TL=40,OPEN=0,DAYS=[],TIDES=[];
+let VIEW="tide",SPOT=SPOTS[0],LIM=15,RL=50,WL=3,TL=40,WA=5,WB=20,WM='day',DH=[5,20],EH=[17,22],OPEN=0,DAYS=[],TIDES=[];
 const $=s=>document.querySelector(s),DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];   // short query helper and day names
 // Midnight of day zero. All hours are counted from this point. Do not move it without a reason.
 const D0=new Date();D0.setHours(0,0,0,0);
 // Fake random. Same input gives same output, so the demo data does not jump around.
 const rnd=s=>{s=Math.sin(s)*1e4;return s-Math.floor(s)};
 // Hours as decimal (6.5) to text (6:30a). 24 wraps to midnight.
-function fmt(t){t=((t%24)+24)%24;let h=Math.floor(t),m=Math.round((t-h)*60);if(m==60){h++;m=0}return((h%12)||12)+":"+String(m).padStart(2,"0")+(h%24<12?"a":"p")}
+function fmt(t){t=((t%24)+24)%24;let h=Math.floor(t),m=Math.round((t-h)*60);if(m==60){h++;m=0}return((h%12)||12)+":"+String(m).padStart(2,"0")+(h%24<12?"am":"pm")}
+// Time of a Date object in the same style, using the phone clock. Always am/pm, never 24-hour.
+const tm=d=>fmt(d.getHours()+d.getMinutes()/60);
 // Demo data for first start, when there is no internet and no cache. Looks real, but it is not,
 // so the amber banner shouts about it.
 function sample(){LIVEON=false;
@@ -124,17 +131,17 @@ async function live(){
    day.push({t:h.temperature_2m[i],p:h.precipitation_probability[i]??0,r:h.precipitation[i]??0,w:h.wind_speed_10m[i],g:h.wind_gusts_10m[i],d:h.wind_direction_10m[i],wv:((m&&m.hourly.wave_height[i])||0)*3.28,wr:(m&&m.hourly.wave_direction[i])??null,wp:(m&&m.hourly.wave_period[i])??null,cs:m&&m.hourly.ocean_current_velocity[i]!=null?m.hourly.ocean_current_velocity[i]/1.852:null})}H.push(day)}
   DAYS=H;TIDES=n?n.predictions.map(p=>({t:(Date.UTC(+p.t.slice(0,4),+p.t.slice(5,7)-1,+p.t.slice(8,10),+p.t.slice(11,13),+p.t.slice(14,16))-Date.UTC(D0.getFullYear(),D0.getMonth(),D0.getDate()))/36e5,type:p.type,h:+p.v})):ext(m);
   try{localStorage.setItem('nsfh-c-'+SPOT.lat+','+SPOT.lon,JSON.stringify({t:Date.now(),d0:[D0.getFullYear(),D0.getMonth(),D0.getDate()],tz:TZOFF,days:DAYS,tides:TIDES}))}catch(e){}
-LIVEON=true;LAST=Date.now();$("#st").textContent="Live data · updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+(SPOT.st?" · NOAA station "+SPOT.st+((SPOT.n.match(/\(tides: ([^,)]*)/)||[])[1]?" ("+SPOT.n.match(/\(tides: ([^,)]*)/)[1]+")":""):" · tides: model estimate")
+LIVEON=true;LAST=Date.now();$("#st").textContent="Live data · updated "+tm(new Date())+(SPOT.st?" · NOAA station "+SPOT.st+((SPOT.n.match(/\(tides: ([^,)]*)/)||[])[1]?" ("+SPOT.n.match(/\(tides: ([^,)]*)/)[1]+")":""):" · tides: model estimate")
  }catch(e){const r=restore();if(r===null)sample();$("#st").textContent=r!==null?"⚠ Offline: showing the forecast saved "+r+". Tap Refresh to retry.":"⚠ Sample data, not a real forecast. Couldn't load live data. Tap Refresh to retry."}
  draw()}
 // Tide height at any hour. Between two extremes we use cosine. It looks like real tide and costs nothing.
 function tideAt(t){if(!TIDES.length)return 0;if(t<TIDES[0].t)return TIDES[0].h;if(t>=TIDES[TIDES.length-1].t)return TIDES[TIDES.length-1].h;for(let i=0;i<TIDES.length-1;i++){const a=TIDES[i],b=TIDES[i+1];if(t>=a.t&&t<b.t){const f=(t-a.t)/(b.t-a.t);return a.h+(b.h-a.h)*(1-Math.cos(Math.PI*f))/2}}return 0}
-// One day into few numbers. Only daytime 5:00-20:00 counts for the score. Nobody fishes at 3 AM. Well, some do.
-function stats(d){const H=DAYS[d],day=H.slice(5,20);
+// One day into few numbers. Only the chosen time window counts (default 5a-8p). Nobody fishes at 3 AM. Well, some do.
+function stats(d){const H=DAYS[d],day=H.slice(WA,WB);
  let wm=day[0];day.forEach(x=>{if(x.w>wm.w)wm=x});
  const p=Math.max(...day.map(x=>x.p)),wv=Math.max(...day.map(x=>x.wv));
  const gm=Math.max(...day.map(x=>x.g)),tn=Math.min(...day.map(x=>x.t)),sc=wm.w<=LIM&&gm<=LIM*1.4&&p<=RL&&wv<=WL&&tn>=TL?"good":wm.w<=LIM*1.3&&gm<=LIM*1.8&&p<=Math.min(100,RL*1.5+10)&&wv<=WL*1.5&&tn>=TL-10?"fair":"poor";
- const vm=day.reduce((a,b)=>b.wv>a.wv?b:a);return{tn,wr:vm.wr,wp:vm.wp,tmin:Math.min(...H.map(x=>x.t)),tmax:Math.max(...H.map(x=>x.t)),p,rain:H.reduce((s,x)=>s+x.r,0),w:wm.w,g:Math.max(...day.map(x=>x.g)),dir:wm.d,wv,sc}}
+ const vm=day.reduce((a,b)=>b.wv>a.wv?b:a);return{tn,wr:vm.wr,wp:vm.wp,tmin:Math.min(...day.map(x=>x.t)),tmax:Math.max(...day.map(x=>x.t)),p,rain:day.reduce((s,x)=>s+x.r,0),w:wm.w,g:Math.max(...day.map(x=>x.g)),dir:wm.d,wv,sc}}
 // ---- Charts ----
 // X: hour 0..24 to pixels. GR: grid lines with labels. P: polyline path from hourly data.
 const X=h=>30+h/24*300,GR=(vs,y,c)=>vs.map(v=>`<line class='gl' x1='30' x2='330' y1='${y(v).toFixed(1)}' y2='${y(v).toFixed(1)}'/><text class='ax' x='26' y='${(y(v)+3).toFixed(1)}' text-anchor='end'>${c==2?tv(v):c?cv(v):v}</text>`).join(''),P=(a,f)=>a.map((x,h)=>(h?'L':'M')+X(h+.5).toFixed(1)+' '+f(x).toFixed(1)).join(''),PUR='#9b6bf2';
@@ -142,7 +149,7 @@ const X=h=>30+h/24*300,GR=(vs,y,c)=>vs.map(v=>`<line class='gl' x1='30' x2='330'
 const hw=x=>x.w<=LIM&&x.g<=LIM*1.4?'good':x.w<=LIM*1.3&&x.g<=LIM*1.8?'fair':'poor',hv=x=>x.wv<=WL?'good':x.wv<=WL*1.5?'fair':'poor',hr=x=>x.p<=RL?'good':x.p<=Math.min(100,RL*1.5+10)?'fair':'poor',ht=x=>x.t>=TL?'good':x.t>=TL-10?'fair':'poor';
 // Chart wrapper: hour shading, vertical lines, content, now-line, axis labels.
 // aria-label is for screen readers.
-function svg(d,H,s,ax,f,al){const bg=!f?'':DAYS[d].map((x,h)=>{const c=f(x);return c=='good'?'':`<rect class='h${c}' x='${X(h).toFixed(1)}' y='0' width='12.6' height='${H-(ax?12:0)}'/>`}).join('');let a='';if(ax)[0,6,12,18,24].forEach(h=>a+=`<text class='ax' x='${X(h)}' y='${H-3}' text-anchor='middle'>${fmt(h).replace(':00','')}</text>`);let n='';if(!d){const t=new Date(Date.now()+TZOFF*1000),x=X(t.getUTCHours()+t.getUTCMinutes()/60);n=`<line class='nw' x1='${x}' x2='${x}' y1='0' y2='${H-(ax?12:0)}'/>`}return`<svg data-c='1' role='img' aria-label='${al||''}' viewBox='0 0 340 ${H}'>${bg}${[6,12,18].map(h=>`<line class='gl' x1='${X(h)}' x2='${X(h)}' y1='0' y2='${H-(ax?12:0)}'/>`).join('')}${s}${n}${a}<line id='cl' class='cl' x1='-9' x2='-9' y1='0' y2='${H-(ax?12:0)}'/><circle id='ch' class='ch' cx='-9' cy='7' r='6'/></svg>`}
+function svg(d,H,s,ax,f,al){const bg=!f?'':DAYS[d].map((x,h)=>{const c=f(x);return c=='good'?'':`<rect class='h${c}' x='${X(h).toFixed(1)}' y='0' width='12.6' height='${H-(ax?12:0)}'/>`}).join('');let a='';if(ax)[0,6,12,18,24].forEach(h=>a+=`<text class='ax' x='${X(h)}' y='${H-3}' text-anchor='middle'>${fmt(h).replace(':00','')}</text>`);let n='';if(!d){const t=new Date(Date.now()+TZOFF*1000),x=X(t.getUTCHours()+t.getUTCMinutes()/60);n=`<line class='nw' x1='${x}' x2='${x}' y1='0' y2='${H-(ax?12:0)}'/>`}return`<svg data-c='1' role='img' aria-label='${al||''}' viewBox='0 0 340 ${H}'>${bg}${[6,12,18].map(h=>`<line class='gl' x1='${X(h)}' x2='${X(h)}' y1='0' y2='${H-(ax?12:0)}'/>`).join('')}${s}${WA>0?`<rect class='dim' x='${X(0)}' y='0' width='${X(WA)-X(0)}' height='${H-(ax?12:0)}'/>`:''}${WB<24?`<rect class='dim' x='${X(WB)}' y='0' width='${X(24)-X(WB)}' height='${H-(ax?12:0)}'/>`:''}${n}${a}<line id='cl' class='cl' x1='-9' x2='-9' y1='0' y2='${H-(ax?12:0)}'/><circle id='ch' class='ch' cx='-9' cy='7' r='6'/></svg>`}
 // Small arrows. Data says where wind comes FROM, so we rotate by +180 to show where it goes.
 const arr=(d,k,y,c)=>DAYS[d].map((x,h)=>x[k]==null?'':`<g transform='translate(${X(h+.5).toFixed(1)} ${y}) rotate(${Math.round(x[k])+180})'><path d='M0 -6L3.6 4L0 2L-3.6 4Z' fill='${c}'/></g>`).join('');
 // Pick a nice top for the axis from a fixed list. This way the line is never flat at the bottom.
@@ -181,9 +188,9 @@ function draw(){
  $("#chips").innerHTML=DAYS.map((_,d)=>{const s=S[d],dt=new Date(D0.getFullYear(),D0.getMonth(),D0.getDate()+d);return`<button class="chip${d==OPEN?" on":""}" data-d="${d}"><small>${d?DN[dt.getDay()]:"Today"}</small><b>${dt.getDate()}</b><i class="dot ${s.sc}">${{good:"✓",fair:"~",poor:"✕"}[s.sc]}</i></button>`}).join("");
  $("#days").innerHTML=[OPEN].map(d=>{
   const s=S[d],dt=new Date(D0.getFullYear(),D0.getMonth(),D0.getDate()+d),lab={good:"✓ Good",fair:"~ Fair",poor:"✕ Poor"}[s.sc];
-  return`<div class="day" data-d="${d}"><div class="top"><b>${d?DN[dt.getDay()]+" "+(dt.getMonth()+1)+"/"+dt.getDate():"Today"}</b><span class="badge ${s.sc}">${lab}</span></div><div class="sum">${why(s)}</div>
+  return`<div class="day" data-d="${d}"><div class="top"><b>${d?DN[dt.getDay()]+" "+(dt.getMonth()+1)+"/"+dt.getDate():"Today"}</b><span class="badge ${s.sc}">${lab}</span></div><div class="sum">${why(s)}</div>${wbar()}
   <div class="grid"><div><span>Temp</span>${tp(s.tmin)}–${tp(s.tmax)}</div><div><span>Rain</span>${s.p}% · ${rn(s.rain)}</div>
-  <div><span>Wind / gusts (day max)</span>${Math.round(s.w)} / ${Math.round(s.g)} kn from ${cp(s.dir)} <b style="display:inline-block;transform:rotate(${s.dir+180}deg)">↑</b></div><div><span>Waves (day max)</span>${ln(s.wv)}${s.wp==null?"":" at "+Math.round(s.wp)+" s"}${s.wr==null?"":" from "+cp(s.wr)}</div></div>
+  <div><span>Wind / gusts (max)</span>${Math.round(s.w)} / ${Math.round(s.g)} kn from ${cp(s.dir)} <b style="display:inline-block;transform:rotate(${s.dir+180}deg)">↑</b></div><div><span>Waves (max)</span>${ln(s.wv)}${s.wp==null?"":" at "+Math.round(s.wp)+" s"}${s.wr==null?"":" from "+cp(s.wr)}</div></div>
   ${d==OPEN?chart(d):""}</div>`}).join("");setCur()}
 // ---- Spots and settings ----
 const fillSp=i=>{$("#spot").innerHTML=SPOTS.map((s,k)=>`<option value="${k}"${k==i?" selected":""}>${s.n.replace(/ \(tides:.*\)$/,'')}</option>`).join("")};fillSp(0);
@@ -280,21 +287,34 @@ const hourAt=(e,sv)=>{const r=sv.getBoundingClientRect();return((e.clientX-r.lef
 $('#days').addEventListener('pointerdown',e=>{const sv=e.target.closest('svg[data-c]');if(!sv)return;DRAG=true;try{sv.setPointerCapture(e.pointerId)}catch(_){}setCur(hourAt(e,sv))});
 $('#days').addEventListener('pointermove',e=>{if(!DRAG)return;const sv=document.querySelector('#days svg[data-c]');if(sv)setCur(hourAt(e,sv))});
 $('#days').addEventListener('pointerup',()=>{DRAG=false});$('#days').addEventListener('pointercancel',()=>{DRAG=false});
+// ---- Time window ----
+// Details, score and day dots count only the active window. Full day is 0-24.
+// Day and Evening hours are defined in settings (DH, EH). End hour is exclusive: 5p-10p means hours 17..21.
+const hrOpt=(v,sel)=>`<option value='${v}'${v==sel?' selected':''}>${f2(v%24)}</option>`;
+function setWin(m){WM=m;[WA,WB]=m=='full'?[0,24]:m=='day'?DH:EH}
+function wbar(){const L=(a,b)=>f2(a%24)+'\u2013'+f2(b%24),pre=[['full','Full day'],['day','Day '+L(...DH)],['eve','Evening '+L(...EH)]];
+ return`<div class='wb'>${pre.map(([k,n])=>`<button class='tab${WM==k?' on':''}' data-w='${k}'>${n}</button>`).join('')}</div>`}
+// Settings: four selects. Start can be 12a-11p, end can be 1a-12a. Keep start < end.
+const fillTw=()=>{[['d1',DH[0],0],['d2',DH[1],1],['e1',EH[0],0],['e2',EH[1],1]].forEach(([id,v,o])=>{$('#'+id).innerHTML=Array.from({length:24},(_,i)=>hrOpt(i+o,v)).join('')})};
+document.querySelector('.ctl').addEventListener('change',e=>{const id=e.target.id,v=+e.target.value;
+ if(id=='d1'){DH[0]=v;if(DH[1]<=v)DH[1]=Math.min(24,v+1)}else if(id=='d2'){DH[1]=v;if(DH[0]>=v)DH[0]=Math.max(0,v-1)}
+ else if(id=='e1'){EH[0]=v;if(EH[1]<=v)EH[1]=Math.min(24,v+1)}else if(id=='e2'){EH[1]=v;if(EH[0]>=v)EH[0]=Math.max(0,v-1)}else return;
+ fillTw();setWin(WM);draw();flash()});
 $("#go").onclick=live;
-$("#days").onclick=e=>{const v=e.target.dataset.v;if(v){VIEW=v;draw()}};
+$("#days").onclick=e=>{const v=e.target.dataset.v,w=e.target.dataset.w;if(v){VIEW=v;draw()}else if(w){setWin(w);draw()}};
 $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(c){OPEN=+c.dataset.d;draw()}};
 // ---- Storage ----
 // Settings and spots stay on the device only. v:3 is the format version. Change the format, bump the version.
-function save(){try{localStorage.setItem('nsfh1',JSON.stringify({LIM,RL,WL,TL,v:3,UN,sp:SPOT.n,sl:SPOTS}));SAVED=true}catch(e){SAVED=false}}
+function save(){try{localStorage.setItem('nsfh1',JSON.stringify({LIM,RL,WL,TL,WM,DH,EH,v:3,UN,sp:SPOT.n,sl:SPOTS}));SAVED=true}catch(e){SAVED=false}}
 // Load saved settings. Inside try, because broken storage must not kill the app.
-try{const j=JSON.parse(localStorage.getItem('nsfh1')||'null');if(j){LIM=j.LIM??LIM;RL=j.RL??RL;WL=j.WL??WL;TL=j.TL??TL;if(j.v==3&&j.sl&&j.sl.length){SPOTS.length=0;j.sl.forEach(s=>SPOTS.push(s))}SPOT=SPOTS.find(s=>s.n==j.sp)||SPOTS[0];SPOTS.forEach(s=>{s.L=s.L||{LIM,RL,WL,TL}});UN=j.UN||UN;
+try{const j=JSON.parse(localStorage.getItem('nsfh1')||'null');if(j){LIM=j.LIM??LIM;RL=j.RL??RL;WL=j.WL??WL;TL=j.TL??TL;if(j.v==3&&j.sl&&j.sl.length){SPOTS.length=0;j.sl.forEach(s=>SPOTS.push(s))}SPOT=SPOTS.find(s=>s.n==j.sp)||SPOTS[0];SPOTS.forEach(s=>{s.L=s.L||{LIM,RL,WL,TL}});UN=j.UN||UN;const okR=r=>Array.isArray(r)&&r[0]>=0&&r[1]<=24&&r[1]>r[0];if(okR(j.DH))DH=j.DH;if(okR(j.EH))EH=j.EH;if(['full','day','eve'].includes(j.WM))WM=j.WM;setWin(WM);
  [['lim',LIM,' kn'],['rl',RL,'%'],['wl',WL,' ft'],['tl',TL,'°F']].forEach(([id,v,u])=>{$('#'+id).value=v;$('#'+id+'v').textContent=v+u});fillSp(SPOTS.indexOf(SPOT))}}catch(e){}
 // Offline mode: take the last real forecast from cache and drop the days that already passed.
 function restore(){try{const c=JSON.parse(localStorage.getItem('nsfh-c-'+SPOT.lat+','+SPOT.lon)||'null');if(!c)return null;
  const n=new Date(Date.now()+c.tz*1000),td=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()),off=Math.round((td-Date.UTC(c.d0[0],c.d0[1],c.d0[2]))/864e5);
  if(off<0||off>=6)return null;
  DAYS=c.days.slice(off);TIDES=c.tides.map(x=>({...x,t:x.t-off*24}));TZOFF=c.tz;D0.setTime(new Date(c.d0[0],c.d0[1],c.d0[2]+off).getTime());OPEN=Math.min(OPEN,DAYS.length-1);LIVEON=false;
- const o=Date.now()-c.t>432e5?{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}:{hour:'numeric',minute:'2-digit'};return 'at '+new Date(c.t).toLocaleString([],o)}catch(e){return null}}
+ const d2=new Date(c.t);return 'at '+(Date.now()-c.t>432e5?d2.toLocaleDateString('en-US',{month:'short',day:'numeric'})+', ':'')+tm(d2)}catch(e){return null}}
 // Tides outside USA: find highs and lows in the hourly sea level from the model.
 function ext(m){const s=m.hourly.sea_level_height_msl.map(v=>v*3.281),T=[];for(let i=1;i<s.length-1;i++){const a=s[i-1],b=s[i],c=s[i+1];if(b>a&&b>=c)T.push({t:i,type:'H',h:b});else if(b<a&&b<=c)T.push({t:i,type:'L',h:b})}return T}
 // Time zone offset of the spot, in seconds. The now-line must follow the spot, not your phone.
@@ -302,6 +322,6 @@ let TZOFF=-new Date().getTimezoneOffset()*60;
 // Back in the app after 15 minutes? Refresh. Ne chipay: it works.
 let LAST=0,LIVEON=false;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live()});
 // Start: show cached data at once, then ask the network.
-mine();if(restore()===null)sample();draw();live();
+fillTw();mine();if(restore()===null)sample();draw();live();
 </script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))</script>
 </body></html>
