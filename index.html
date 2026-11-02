@@ -385,7 +385,7 @@ const SGRP=[['log','Logging',[['lists','fish','Fish'],['lists','bait','Bait'],['
  ['app','App',[['units','','Units'],['about','','About']]]];
 let SPG='lists',LTAB='fish',SLAST={};
 const sgOf=(p,t)=>SGRP.find(g=>g[2].some(z=>z[0]==p&&(p!='lists'||z[1]==t)));
-function setPage(p,t){SPG=p;if(t)LTAB=t;LE=null;MG=null;MUND=null;EDIT=-1;CONF=-1;
+function setPage(p,t){SPG=p;if(t)LTAB=t;LUND=null;LE=null;MG=null;MUND=null;EDIT=-1;CONF=-1;
  document.querySelector('.ctl').dataset.p=p;document.querySelectorAll('.ctl .pg').forEach(e=>{e.hidden=e.dataset.pg!=p});
  rtabs();if(p=='lists')rlists();document.body.scrollTop=0}
 function rtabs(){const g=sgOf(SPG,LTAB);SLAST[g[0]]=[SPG,LTAB];
@@ -395,31 +395,47 @@ $('#stabs').onclick=e=>{const g=e.target.closest('[data-sg]'),p=e.target.closest
  if(g){const x=SGRP.find(z=>z[0]==g.dataset.sg),l=SLAST[x[0]]||[x[2][0][0],x[2][0][1]];setPage(l[0],l[1])}
  else if(p){const l=p.dataset.ss.split('|');setPage(l[0],l[1])}};
 // List editor. LE = the row being renamed or deleted, MG = the spot being merged, MUND = what Undo restores after a merge.
-let LE=null,MG=null,MUND=null;
+let LE=null,MG=null,MUND=null,LUND=null;   // LUND: what Undo restores after merging two fish, baits or rigs
 const cap1=v=>v.trim().replace(/\s+/g,' ').slice(0,24).replace(/^./,c=>c.toUpperCase());
 function rlists(){
  if(LTAB=='spot'){$('#lists').innerHTML='<div id="mys"></div>';mine();return}
  const k=LTAB,L=LS(k),c=usage()[LKEY[k]],names=namesOf(k,c,null,1),my=L.mode=='my',r=regNow(),mo=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()+1],
   info=k=='fish'?(r?r.id+', '+mo+'. ':'No regional list here. ')+'Switch a fish off to hide it from the catch sheet.':k=='bait'?'Switch a bait off to hide it from the catch sheet.':'Pick your rig once per session on the Fish tab. Switch a rig off to hide it there.',
   rows=names.map((n,i)=>{const off=L.hide.includes(n),q=esc2(n),used=c[n]||0;
+   if(LE&&LE.k==k&&LE.n==n&&LE.m=='mg')return`<div class="lrow"><span class="nm2">Merge “${q}” into</span><select id="lmg" aria-label="Merge into">${names.filter(z=>z!=n).map(z=>`<option value="${esc2(z)}">${esc2(z)}</option>`).join('')}</select><button class="pri" data-x="mgo" data-n="${q}">Merge</button><button data-x="cn">Cancel</button></div><p class="hint">Past catches called “${q}” are changed to the one you pick. You can undo this.</p>`;
    if(LE&&LE.k==k&&LE.n==n)return LE.m=='del'?`<div class="lrow"><span class="nm2">${used?'Switch off':'Delete'} “${q}”? Past catches keep the name.</span><button class="dng" data-x="yes" data-n="${q}">${used?'Yes, switch off':'Yes, delete'}</button><button data-x="cn">Cancel</button></div>`
-    :`<div class="lrow"><input id="lrn" maxlength="24" value="${q}" aria-label="Name"><button class="pri" data-x="sv" data-n="${q}">Save</button><button class="dng" data-x="ask" data-n="${q}">Delete</button><button data-x="cn">Cancel</button></div>`;
+    :`<div class="lrow"><input id="lrn" maxlength="24" value="${q}" aria-label="Name"><button class="pri" data-x="sv" data-n="${q}">Save</button><button class="dng" data-x="ask" data-n="${q}">Delete</button>${names.length>1?`<button data-x="mg" data-n="${q}">Merge</button>`:''}<button data-x="cn">Cancel</button></div>`;
    return`<div class="lrow${off?' off':''}">${my?`<span class="mv"><button data-x="up" data-n="${q}" aria-label="Move up"${i?'':' disabled'}>▲</button><button data-x="dn" data-n="${q}" aria-label="Move down"${i<names.length-1?'':' disabled'}>▼</button></span>`:''}<button class="nm" data-x="ren" data-n="${q}">${q}</button><span class="u">${used}×</span><button class="sw${off?' o':''}" data-x="tog" data-n="${q}" role="switch" aria-checked="${!off}" aria-label="${q} ${off?'off':'on'}"><i></i></button></div>`}).join('');
- $('#lists').innerHTML=`<p class="hint">${info}</p><div class="seg2"><button class="${my?'':'on'}" data-x="mode" data-n="use">Most used first</button><button class="${my?'on':''}" data-x="mode" data-n="my">My order</button></div>${rows}
+ $('#lists').innerHTML=(LUND&&LUND.k==k?`<div class="lrow undo"><span class="nm2">Merged “${esc2(LUND.from)}” into “${esc2(LUND.to)}”</span><button class="pri" data-x="undo">Undo</button></div>`:'')+`<p class="hint">${info}</p><div class="seg2"><button class="${my?'':'on'}" data-x="mode" data-n="use">Most used first</button><button class="${my?'on':''}" data-x="mode" data-n="my">My order</button></div>${rows}
  <div class="srch"><input id="lnew" maxlength="24" placeholder="Add ${k=='rig'?'a rig':k=='bait'?'a bait':'a fish'}" aria-label="Add a name"><button class="pri" data-x="add">Add</button></div>
  ${k=='fish'&&r?`<label class="tw"><span><input type="checkbox" id="fall"${L.all?' checked':''}> Also show fish that are out of season</span></label>`:''}
  ${L.add.length||L.hide.length||L.all||my?'<div><button data-x="reset">Reset this list</button></div>':''}`}
+// Merge two fish, baits or rigs. Every catch that used the first is changed to the second, and the first leaves the list.
+// LUND keeps what Undo needs: each changed item with its old name and id, plus the list settings and the id registry as they were.
+function mergeList(k,from,to){stamp();const [,nf,idf]=IDK.find(z=>z[0]==k),a=rid(k,from),b=rid(k,to),R=LOG.reg[k],L=LS(k),
+  moved=logItems().filter(x=>x[idf]==a).map(x=>[x,x[nf],a]);
+ LUND={k,from,to,moved,reg:JSON.stringify(R),ls:JSON.stringify(LOG.ls[k]||null),baits:JSON.stringify(LOG.baits||null)};
+ moved.forEach(([x])=>{x[nf]=to;x[idf]=b});delete R[a];
+ if(L.add.includes(from))L.add=L.add.filter(z=>z!=from);else if(!L.hide.includes(from))L.hide=[...L.hide,from];
+ L.hide=L.hide.filter(z=>z!=to);L.ord=L.ord.filter(z=>z!=from);if(k=='bait'&&LOG.baits)LOG.baits=LOG.baits.filter(z=>z!=from)}
+function undoList(){const u=LUND;if(!u)return;const [,nf,idf]=IDK.find(z=>z[0]==u.k);
+ u.moved.forEach(([x,n,id])=>{x[nf]=n;x[idf]=id});LOG.reg[u.k]=JSON.parse(u.reg);
+ const l=JSON.parse(u.ls);if(l)LOG.ls[u.k]=l;else delete LOG.ls[u.k];
+ const bt=JSON.parse(u.baits);if(bt)LOG.baits=bt;else delete LOG.baits;LUND=null}
 function lact(x,n){const k=LTAB,L=LS(k),c=usage()[LKEY[k]];
  const fix=()=>{L.ord=namesOf(k,c,null,1)},has=v=>namesOf(k,c,null,1).find(z=>z.toLowerCase()==v.toLowerCase());
  switch(x){
   case'tog':L.hide=L.hide.includes(n)?L.hide.filter(z=>z!=n):[...L.hide,n];break;
   case'mode':if(n=='my'&&L.mode!='my')fix();L.mode=n;break;
   case'up':case'dn':{fix();const i=L.ord.indexOf(n),j=i+(x=='up'?-1:1);if(i>=0&&j>=0&&j<L.ord.length){L.ord[i]=L.ord[j];L.ord[j]=n}}break;
-  case'ren':LE={k,n,m:'ren'};break;
+  case'ren':LE={k,n,m:'ren'};LUND=null;break;
+  case'mg':LE={k,n,m:'mg'};LUND=null;break;
+  case'mgo':{const to=($('#lmg')||{}).value;if(!to||to==n)return;mergeList(k,n,to);LE=null}break;
+  case'undo':undoList();break;
   case'ask':LE={k,n,m:'del'};break;
   case'cn':LE=null;break;
   case'sv':{const v=cap1(($('#lrn')||{}).value||''),old=has(v);if(!v||v.toLowerCase()=='other'||(old&&old!=n)){say('Pick a different name');return}
-   if(v!=n){if(L.add.includes(n))L.add=L.add.map(z=>z==n?v:z);else{L.hide=[...L.hide,n];L.add.push(v)}L.hide=L.hide.filter(z=>z!=v);L.ord=L.ord.map(z=>z==n?v:z);if(LOG.baits)LOG.baits=LOG.baits.map(z=>z==n?v:z)}LE=null}break;
+   if(v!=n){renameAll(k=='bait'?'bait':k=='rig'?'rig':'fish',n,v);if(L.add.includes(n))L.add=L.add.map(z=>z==n?v:z);else{L.hide=[...L.hide,n];L.add.push(v)}L.hide=L.hide.filter(z=>z!=v);L.ord=L.ord.map(z=>z==n?v:z);if(LOG.baits)LOG.baits=LOG.baits.map(z=>z==n?v:z)}LE=null}break;
   case'yes':{if(L.add.includes(n)&&!c[n])L.add=L.add.filter(z=>z!=n);else if(!L.hide.includes(n))L.hide.push(n);L.ord=L.ord.filter(z=>z!=n);if(k=='bait'&&LOG.baits)LOG.baits=LOG.baits.filter(z=>z!=n);LE=null}break;
   case'add':{const el=$('#lnew'),v=cap1((el&&el.value)||'');if(!v||v.toLowerCase()=='other')return;const old=has(v);if(old)L.hide=L.hide.filter(z=>z!=old);else L.add.push(v)}break;
   case'all':L.all=L.all?0:1;break;
@@ -558,7 +574,20 @@ const SPC=['Striped bass','Bluefish','Fluke','Flounder','Sea bass','Porgy','Blac
 try{const j=JSON.parse(localStorage.getItem(LOGK)||'null');if(j&&j.sessions){LOG=j;LOG.active=LOG.active||null;if(LOG.fish){LOG.ls=LOG.ls||{};LOG.ls.fish=Object.assign({mode:'use',ord:[]},LOG.fish);delete LOG.fish}
  // older catches had a Kept flag: it becomes size class Keeper
  [...LOG.sessions,...(LOG.active?[LOG.active]:[])].forEach(x=>x.c.forEach(f=>{if(f.keep&&!f.sz)f.sz='keeper';delete f.keep}))}}catch(e){}
-function lsave(){try{localStorage.setItem(LOGK,JSON.stringify(LOG));return true}catch(e){say('⚠ Couldn’t save the log on this device');return false}}
+// Ids. Fish, bait and rigs each get an id the first time a name is used. LOG.reg[kind] maps id to the current name.
+// A catch keeps its name (the app reads names everywhere) and also its id (si fish, bi bait, ri rig). A rename changes the
+// name in the registry and in every catch that has the id, so history follows the rename. stamp() adds ids to older logs.
+const IDK=[['fish','sp','si'],['bait','bait','bi'],['rig','rig','ri']];
+function rid(k,n){LOG.reg=LOG.reg||{};const R=LOG.reg[k]=LOG.reg[k]||{},l=n.toLowerCase();for(const i in R)if(R[i].toLowerCase()==l)return i;
+ const b=k[0]+'-'+(l.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'x');let i=b,j=1;while(R[i])i=b+'-'+(++j);R[i]=n;return i}
+const logItems=()=>[...LOG.sessions,...(LOG.active?[LOG.active]:[])].flatMap(x=>[x,...x.c]);
+function stamp(){logItems().forEach(o=>IDK.forEach(([k,nf,idf])=>{const n=o[nf];if(n&&typeof n!='string')return;   // a session's sp is its spot, not a fish
+ if(!n){delete o[idf];return}
+ if(!(o[idf]&&LOG.reg&&LOG.reg[k]&&LOG.reg[k][o[idf]]==n))o[idf]=rid(k,n)}))}
+function renameAll(k,n,v){stamp();const id=rid(k,n),R=LOG.reg[k],[,nf,idf]=IDK.find(z=>z[0]==k),all=logItems();
+ for(const o in R)if(o!=id&&R[o].toLowerCase()==v.toLowerCase()){all.forEach(x=>{if(x[idf]==o)x[idf]=id});delete R[o]}
+ R[id]=v;all.forEach(x=>{if(x[idf]==id)x[nf]=v})}
+function lsave(){try{stamp()}catch(e){}try{localStorage.setItem(LOGK,JSON.stringify(LOG));return true}catch(e){say('⚠ Couldn’t save the log on this device');return false}}
 // Small message at the bottom of the screen. The settings use the same one.
 function say(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(TT);TT=setTimeout(()=>t.classList.remove('show'),ms||1600)}
 const r1=v=>Math.round(v*10)/10,pad=n=>String(n).padStart(2,'0');
@@ -815,10 +844,10 @@ function shareCard(){
 // ---- Export ----
 function csv(){
  const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
- const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','pos_lat','pos_lon','pos_acc_m','catch_time','catch_lat','catch_lon','catch_acc_m','species','length_in','outcome','size_class','bait','rig','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
+ const hd=['session','date','start','spot','lat','lon','hours','catches_in_session','pos_lat','pos_lon','pos_acc_m','catch_time','catch_lat','catch_lon','catch_acc_m','species','length_in','outcome','size_class','bait','rig','species_id','bait_id','rig_id','tide','tide_ft','light','wind_kn','gust_kn','air_f','wave_ft','rain_pct','moon_phase'];
  const rows=[hd.join(',')];
  for(const x of LOG.sessions){const base=[x.id,new Date(x.s).toISOString().slice(0,10),new Date(x.s).toISOString(),x.sp.n,x.sp.lat,x.sp.lon,r1((x.e-x.s)/36e5),x.c.length,x.pos?x.pos.la:'',x.pos?x.pos.lo:'',x.pos?x.pos.acc:''];
-  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f&&f.pos?f.pos.la:'',f&&f.pos?f.pos.lo:'',f&&f.pos?f.pos.acc:'',f?f.sp:'',f&&f.len||'',f?{kept:'kept',rel:'released'}[outOf(f)]||'':'',f&&f.sz||'',f&&f.bait||x.bait||'',f&&f.rig||x.rig||'',...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
+  const line=(f,c)=>rows.push([...base,f?new Date(f.t).toISOString():'',f&&f.pos?f.pos.la:'',f&&f.pos?f.pos.lo:'',f&&f.pos?f.pos.acc:'',f?f.sp:'',f&&f.len||'',f?{kept:'kept',rel:'released'}[outOf(f)]||'':'',f&&f.sz||'',f&&f.bait||x.bait||'',f&&f.rig||x.rig||'',f&&f.si||'',f&&(f.bi||x.bi)||'',f&&(f.ri||x.ri)||'',...(c?[c.tide,c.th,c.light,c.wind,c.gust,c.temp,c.wave,c.rain,c.moon]:Array(9).fill(''))].map(q).join(','));
   if(!x.c.length)line(null,x.cond);else x.c.forEach(f=>line(f,f.cond||x.cond))}
  return rows.join('\n')}
 function dl(name,text,type){try{const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2e3)}catch(e){say('⚠ Couldn’t export')}}
