@@ -137,6 +137,9 @@ body.rec #logw{top:calc(var(--bh) + 42px)}
 
 /* Settings tabs. Level 1 is a row of filled buttons. Level 2 is plain text on a line, with an underline on the active one, so the two levels look different. */
 #stabs .tab{flex:1;text-align:center}
+/* Level 1 matches the tabs on Sessions and Forecast (grey, 10px corners). */
+.ctl #stabs .tabs:not(.sub) .tab{background:var(--bg);color:var(--mu);border-radius:10px}
+.ctl #stabs .tabs:not(.sub) .tab.on{background:var(--ac);color:#fff}
 #stabs .tabs{margin:6px 0 0}
 #stabs .tabs.sub{margin:12px 0 8px;gap:0;border-bottom:1px solid var(--bd,rgba(128,128,128,.3))}
 #stabs .sub .tab{background:none;border:0;border-radius:0;box-shadow:none;font-size:14px;font-weight:600;color:var(--mu);padding:10px 4px;margin-bottom:-1px;border-bottom:3px solid transparent}
@@ -144,6 +147,15 @@ body.rec #logw{top:calc(var(--bh) + 42px)}
 main.s.sl,main.s.sr,.ctl.sl,.ctl.sr{animation:none}
 /* The page scrolls inside the body, not the browser window. The window never scrolls, so the phone's address bar never collapses and the fixed top and bottom bars never move. */
 html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch}
+.lrow2 .cr{border-top:0;padding:0;flex:1}.crs{margin-top:8px}.cr{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--bd)}.ci{width:32px;height:32px;border-radius:10px;background:var(--bg);display:grid;place-items:center;flex:none}
+.cn1{font-size:16px;font-weight:700}.cr .mu b{color:var(--tx)}.tg{font-size:12px;font-weight:600;border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+.tg.kept{background:rgba(30,158,90,.18);color:#1e9e5a}.tg.rel{background:rgba(128,128,128,.2);color:var(--mu)}.tg.pb{background:rgba(255,190,60,.22);color:#c58a00}
+.sc .row1{display:flex;justify-content:space-between;gap:8px}.sc .chev{color:var(--mu)}.sc .fl{margin-top:4px;font-size:14px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sc+.lcard{margin-top:-4px}
+/* A session is one card. The summary and the opened details are plain sections inside it, split by a thin line. */
+#lbody .sess{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+#lbody .sess .lcard{background:none;border:0;border-radius:0;margin:0;box-shadow:none}
+#lbody .sess .lcard.dt{border-top:1px solid var(--bd);padding-top:10px}
+#lbody textarea#lnote{margin:4px 0 8px}
 </style></head>
 <body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show on the Settings tab. -->
 <div id="topw"><header class="brand" id="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div></header></div>
@@ -796,17 +808,25 @@ function vPastForm(){const t=new Date().toISOString().slice(0,10);
  return `<div class="lcard"><label class="mu">Date</label><input id="pd" type="date" value="${t}" max="${t}">
  <label class="mu">Started</label><input id="ps" type="time" value="06:00"><label class="mu">Hours fished</label><input id="ph" type="number" value="3" min="0.25" max="24" step="0.25">
  <label class="mu">Catches</label><input id="pn" type="number" value="0" min="0" max="200"><button class="bigx bigs" style="background:var(--ac)" data-a="addpast">Save past session</button></div>`}
-function sumCard(x){
+// One row per catch: the fish, kept or released, its size, and what it was caught on. Shown on the card until the session is opened for editing.
+const catchRow=(x,f)=>{const o=outOf(f),pb=f.len&&f.sp&&f.len==maxLen(f.sp);
+ return`<div class="cr"><span class="ci">🐟</span><div><div class="cn1">${esc2(f.sp||'Catch')}${f.len?' '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}${o?`<span class="tg ${o}">${o=='kept'?'kept':'released'}</span>`:''}${pb?'<span class="tg pb">PB</span>':''}${f.sz&&!f.len&&szName(f.sz)?`<span class="mu"> · ${szName(f.sz)}</span>`:''}</div>
+ <div class="mu">${stm(f.t)} · ${f.bait?'on <b>'+esc2(f.bait)+'</b>':'no bait noted'}${f.pos?' · 📍':''}</div></div></div>`};
+// Collapsed card: day and spot, how long, how many fish, and which fish. Conditions, rig, notes and each catch are in the opened card.
+function fishLine(x){const m={};x.c.forEach(f=>{const k=f.sp||'Catch';m[k]=(m[k]||0)+1});return Object.keys(m).map(k=>esc2(k)+(m[k]>1?' ×'+m[k]:'')).join(' · ')}
+function sumCard(x,open){
  const n=x.c.length,dur=(x.e||Date.now())-x.s;
- return `<div class="lcard"><b>${sday(x.s)}</b> · ${esc2(x.sp.n)}<div>${stm(x.s)}–${stm(x.e||Date.now())} · ${hm(dur)} · <b>${cn(n)}</b>${n&&dur>=6e5?' · '+r1(n/(dur/36e5))+'/hr':''}</div>
- <div class="mu">${condLine(x.cond)}</div>${baitsOf(x).length?`<div class="mu">Bait: ${baitsOf(x).map(esc2).join(', ')}</div>`:''}${x.rig?`<div class="mu">Rig: ${esc2(x.rig)}</div>`:''}</div>`}
+ return `<div class="lcard sc${open?' op':''}"><div class="row1"><span><b>${sday(x.s)}</b> · ${esc2(x.sp.n)}</span><span class="chev">${open?'▴':'▾'}</span></div>
+ <div class="mu">${hm(dur)} · <b>${n?cn(n):'Nothing caught'}</b>${n&&dur>=6e5?' · '+r1(n/(dur/36e5))+'/hr':''}</div>${n?`<div class="fl">${fishLine(x)}</div>`:''}</div>`}
+const sessDetail=x=>{const cb=x.c.some(f=>f.bait);return`<div class="mu">${stm(x.s)}–${stm(x.e||Date.now())} · ${condLine(x.cond)}</div>${x.rig?`<div class="mu">Rig: ${esc2(x.rig)}</div>`:''}${!cb&&baitsOf(x).length?`<div class="mu">Bait: ${baitsOf(x).map(esc2).join(', ')}</div>`:''}`};
 function vHist(){
  let h=LOG.sessions.length?'':'<p class="mu">No sessions yet. Your first one will show up here.</p>';
  h+=LOG.sessions.map(x=>{const open=LOPEN==x.id;
-  return `<div class="lrow" data-a="open" data-id="${x.id}">${sumCard(x)}</div>`+(open?`<div class="lcard"><textarea id="lnote" data-id="${x.id}" placeholder="Notes">${esc2(x.note||'')}</textarea>
+  return `<div class="sess"><div class="lrow" data-a="open" data-id="${x.id}">${sumCard(x,open)}</div>`+(open?`<div class="lcard dt">${sessDetail(x)}
    ${x.pos||x.c.some(f=>f.pos)?`<div class="mu" style="margin-top:8px">Catch spots${x.pos?' · '+fmtPos(x.pos):''}</div><div id="smap" class="smap"></div>`:''}
-   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}"><span>${stm(f.t)} · ${esc2(f.sp||'catch')}${outOf(f)=='kept'?' · kept':outOf(f)=='rel'?' · released':''}${f.sz?' · '+szName(f.sz):''}${f.len&&f.len==maxLen(f.sp)&&f.sp?' · PB':''}${f.bait?' · '+esc2(f.bait):''}${f.len?' · '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}${f.pos?' · 📍':''}</span><span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
-   ${LCONF==x.id?`<button class="bigx" data-a="del" data-id="${x.id}">Really delete this session</button><button class="ib" data-a="nodel">Cancel</button>`:`<button class="ib" data-a="askdel" data-id="${x.id}">Delete session</button>`}</div>`:'')}).join('');
+   ${x.c.map((f,i)=>`<div class="lrow2" data-a="hsel" data-id="${x.id}" data-i="${i}">${catchRow(x,f)}<span class="mu">edit</span></div>${LHS==x.id+':'+i?chips(x,i,0):''}`).join('')}
+   <div class="mu" style="margin-top:10px">Notes</div><textarea id="lnote" data-id="${x.id}" placeholder="Notes">${esc2(x.note||'')}</textarea>
+   ${LCONF==x.id?`<button class="bigx" data-a="del" data-id="${x.id}">Really delete this session</button><button class="ib" data-a="nodel">Cancel</button>`:`<button class="ib" data-a="askdel" data-id="${x.id}">Delete session</button>`}</div>`:'')+'</div>'}).join('');
  h+=`<button class="ib" data-a="past">${LPAST?'Cancel':'+ Add a past session'}</button>${LPAST?vPastForm():''}`;
  if(LOG.sessions.length)h+=`<button class="ib" data-a="csv">Export CSV</button><button class="ib" data-a="json">Export backup (JSON)</button>`;
  return h}
