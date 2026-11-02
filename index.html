@@ -50,7 +50,7 @@ body[data-t=fish] main,body[data-t=trips] main{display:none!important}
 body:not([data-t=fish]) #fishv,body:not([data-t=trips]) #logw{display:none}
 #fishv,#logw{position:fixed;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));overflow:auto;background:var(--bg);padding:14px;z-index:30}
 #fishv .in,#logw>*{max-width:520px;margin-left:auto;margin-right:auto}#fishv .in{display:flex;flex-direction:column;min-height:100%}
-#nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:45;transform:translateZ(0);will-change:transform;contain:layout paint}
+#nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:45}
 #nav button{flex:1;background:none;color:var(--mu);border:0;border-radius:0;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600}
 #nav svg{width:24px;height:24px;margin:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 body[data-t=fish] #nav [data-t=fish],body[data-t=fc] #nav [data-t=fc],body[data-t=trips] #nav [data-t=trips],body[data-t=set] #nav [data-t=set]{color:var(--ac)}
@@ -142,7 +142,8 @@ body.rec #logw{top:calc(var(--bh) + 42px)}
 #stabs .sub .tab{background:none;border:0;border-radius:0;box-shadow:none;font-size:14px;font-weight:600;color:var(--mu);padding:10px 4px;margin-bottom:-1px;border-bottom:3px solid transparent}
 .ctl #stabs .sub .tab.on{background:none;color:var(--ac);border:0;border-bottom:3px solid var(--ac)}
 main.s.sl,main.s.sr,.ctl.sl,.ctl.sr{animation:none}
-html{overscroll-behavior-y:none}
+/* The page scrolls inside the body, not the browser window. The window never scrolls, so the phone's address bar never collapses and the fixed top and bottom bars never move. */
+html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch}
 </style></head>
 <body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show on the Settings tab. -->
 <div id="topw"><header class="brand" id="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div></header></div>
@@ -386,7 +387,7 @@ let SPG='lists',LTAB='fish',SLAST={};
 const sgOf=(p,t)=>SGRP.find(g=>g[2].some(z=>z[0]==p&&(p!='lists'||z[1]==t)));
 function setPage(p,t){SPG=p;if(t)LTAB=t;LE=null;MG=null;MUND=null;EDIT=-1;CONF=-1;
  document.querySelector('.ctl').dataset.p=p;document.querySelectorAll('.ctl .pg').forEach(e=>{e.hidden=e.dataset.pg!=p});
- rtabs();if(p=='lists')rlists();scrollTo(0,0)}
+ rtabs();if(p=='lists')rlists();document.body.scrollTop=0}
 function rtabs(){const g=sgOf(SPG,LTAB);SLAST[g[0]]=[SPG,LTAB];
  $('#stabs').innerHTML=`<div class="tabs">${SGRP.map(x=>`<button class="tab${x==g?' on':''}" data-sg="${x[0]}">${x[1]}</button>`).join('')}</div><div class="tabs sub">${g[2].map(z=>`<button class="tab${z[0]==SPG&&(z[0]!='lists'||z[1]==LTAB)?' on':''}" data-ss="${z[0]}|${z[1]}">${z[2]}</button>`).join('')}</div>`}
 const LKEY={fish:'sp',bait:'bt',rig:'rg'};
@@ -686,7 +687,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>set
 function tick(){const a=LOG.active;if(!a)return;const t=$('#ltimer');if(t)t.textContent=hmm(Date.now()-a.s);const c=$('#cnt');if(c)c.textContent=cntTxt(a);const s=$('#strip');if(s&&!s.hidden)s.textContent=stripTxt(a)}
 function ticker(){clearInterval(TK);rstrip();TK=setInterval(tick,1000);if(TK.unref)TK.unref()}
 const TABS=['fish','fc','trips','set'],VIEWS={fish:'#fishv',fc:'main',trips:'#logw',set:'main'};   // Settings is the fourth tab; it shows the .ctl part of the main page
-function tab(t){const old=TAB;TAB=t;RIGPICK=0;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.toggle('s',t=='set');if(t=='set')setPage(SPG,LTAB);else scrollTo(0,0);rall();slide(old,t)}
+function tab(t){const old=TAB;TAB=t;RIGPICK=0;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.toggle('s',t=='set');if(t=='set')setPage(SPG,LTAB);else document.body.scrollTop=0;rall();slide(old,t)}
 // The page you go to slides in from the side you are heading to.
 function slide(a,b){if(a==b)return;try{const el=document.querySelector(VIEWS[b]);if(!el||!el.classList)return;el.classList.remove('sl','sr');void el.offsetWidth;el.classList.add(TABS.indexOf(b)>TABS.indexOf(a)?'sl':'sr')}catch(e){}}
 // Swipe left or right anywhere to change page. Charts, sideways scrolling rows, inputs and maps keep their own gestures.
