@@ -156,6 +156,9 @@ html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hid
 #lbody .sess .lcard{background:none;border:0;border-radius:0;margin:0;box-shadow:none}
 #lbody .sess .lcard.dt{border-top:1px solid var(--bd);padding-top:10px}
 #lbody textarea#lnote{margin:4px 0 8px}
+#lbody .seg2{display:flex;gap:8px;margin-top:10px}#lbody .seg2 button{flex:1;margin:0}
+.spset{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px}.spset .ib{width:auto;margin:0;padding:10px 18px;background:var(--ac);color:#fff;border-color:var(--ac)}
+.orbb:disabled{filter:grayscale(1);opacity:.4;cursor:not-allowed;transform:none}
 </style></head>
 <body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show on the Settings tab. -->
 <div id="topw"><header class="brand" id="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div></header></div>
@@ -378,7 +381,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 async function nearest(la,lo){try{if(!STN)STN=(await fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions').then(r=>r.json())).stations}catch(e){}
  const L=STN||SPOTS.map(s=>({id:s.st,name:s.n,lat:s.lat,lng:s.lon}));return L.reduce((m,s)=>km(la,lo,s.lat,s.lng)<km(la,lo,m.lat,m.lng)?s:m)}
 // Add spot from search. If it is within 1 km of an existing one, just select the existing. No duplicates.
-async function addSpot(n,la,lo){const dp=SPOTS.findIndex(x=>km(la,lo,x.lat,x.lon)<1);if(dp>=0){SPOT=SPOTS[dp];fillSp(dp);$('#res').innerHTML='';tab('fc');sample();draw();live();return}const s=await nearest(la,lo),d=Math.round(km(la,lo,s.lat,s.lng)*.62),far=d>100;SPOTS.push({n:n+(far?' (tides: model)':' (tides: '+s.name+', '+d+' mi)'),st:far?null:s.id,lat:la,lon:lo});SPOT=SPOTS[SPOTS.length-1];fillSp(SPOTS.length-1);$('#res').innerHTML='';mine();tab('fc');sample();draw();live()}
+async function addSpot(n,la,lo){const dp=SPOTS.findIndex(x=>km(la,lo,x.lat,x.lon)<1);if(dp>=0){SPOT=SPOTS[dp];fillSp(dp);$('#res').innerHTML='';tab('fc');sample();draw();live();return}const s=await nearest(la,lo),d=Math.round(km(la,lo,s.lat,s.lng)*.62),far=d>100;SPOTS.push({n:n+(far?' (tides: model)':' (tides: '+s.name+', '+d+' mi)'),st:far?null:s.id,lat:la,lon:lo});SPOT=SPOTS[SPOTS.length-1];{const di=SPOTS.findIndex(p=>p.lat==64.147&&p.lon==-21.94);if(di>=0&&SPOTS.length>1)SPOTS.splice(di,1)}fillSp(SPOTS.indexOf(SPOT));save();$('#res').innerHTML='';mine();tab('fc');sample();draw();live()}
 // Place search. Open-Meteo geocoding understands zip codes too.
 async function search(){const q=$('#q').value.trim();if(!q)return;$('#res').textContent='Searching...';
  try{const j=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&format=json&name='+encodeURIComponent(q)).then(r=>r.json());RES=j.results||[];$('#res').innerHTML=RES.map((r,i)=>`<button data-i='${i}'>${esc(r.name)}, ${esc(r.admin1||r.country)}</button>`).join('')||'No matches'}
@@ -631,7 +634,7 @@ const fmtPos=p=>p.la.toFixed(4)+', '+p.lo.toFixed(4)+(p.m?' · set on map':' · 
 // ---- Actions ----
 const rall=()=>{rfish();rlog();rsheet();rstrip()};
 function logStart(){
- if(LOG.active)return;
+ if(LOG.active||noSpot())return;
  const now=Date.now();
  const a0=LOG.active={id:now.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:now,e:null,tz:TZOFF,c:[],note:'',cond:snap(now),pos:null,pw:1,rig:LOG.sessions.length?LOG.sessions[0].rig||'':''};   // the rig carries over from your last session
  LSUM=null;HERE=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
@@ -691,9 +694,11 @@ function nowLine(){const s=snap(Date.now());
 function tideNow(){if(DSRC=='sample'||TIDES.length<2)return null;const hf=(Date.now()-dayMs0(0))/36e5;
  for(let i=0;i<TIDES.length-1;i++){const a=TIDES[i],b=TIDES[i+1];if(hf>=a.t&&hf<b.t)return{f:(hf-a.t)/(b.t-a.t),up:b.type=='H',next:b}}return null}
 // The round button inside a ring. The ring shows the tide cycle: it fills from the last turn to the next, the dot is now.
-function orb(inner,act,extra){const t=tideNow(),C=2*Math.PI*140,f=t?Math.min(1,Math.max(0,t.f)):0,ang=f*2*Math.PI-Math.PI/2,
+// First run: until a real spot is set, the only spot is the built-in Reykjavik default. START stays off until then.
+const noSpot=()=>SPOTS.every(p=>p.lat==64.147&&p.lon==-21.94);
+function orb(inner,act,extra,dis){const t=tideNow(),C=2*Math.PI*140,f=t?Math.min(1,Math.max(0,t.f)):0,ang=f*2*Math.PI-Math.PI/2,
   ring=`<svg class="ring" viewBox="0 0 300 300" aria-hidden="true"><circle class="rt" cx="150" cy="150" r="140"/>${t?`<circle class="rp" cx="150" cy="150" r="140" stroke-dasharray="${(f*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 150 150)"/><circle class="rd2" cx="${(150+140*Math.cos(ang)).toFixed(1)}" cy="${(150+140*Math.sin(ang)).toFixed(1)}" r="9"/>`:''}</svg>`;
- return`<div class="orb">${ring}<button class="orbb" data-a="${act}">${extra||''}${inner}</button></div>`}
+ return`<div class="orb">${ring}<button class="orbb" data-a="${act}"${dis?' disabled aria-disabled="true"':''}>${extra||''}${inner}</button></div>`}
 function tideTxt(){const t=tideNow();if(!t)return nowLine();return(t.up?'Rising':'Falling')+' tide · '+(t.up?'High':'Low')+' at '+f2(((t.next.t%24)+24)%24)+(DSRC=='cache'?' (saved forecast)':'')}
 function condTxt(){const s=snap(Date.now());return s?Math.round(s.wind)+' kn '+cp(s.wdir)+' · '+tp(s.temp):''}
 function lastLine(){const l=LOG.sessions.reduce((m,x)=>!m||x.s>m.s?x:m,null);return l?'Last session '+sday(l.s)+' · '+cn(l.c.length):'No sessions yet'}
@@ -701,9 +706,10 @@ const ago=ms=>{const m=Math.floor(ms/6e4);return m<1?'just now':m<60?m+' min ago
 function rfish(){
  if(TAB!='fish')return;
  const a=LOG.active;const ae=document.activeElement;if(ae&&ae.id=='nsname')return;   // do not rebuild while typing
- const head=`<div class="spn">${esc2(lname(SPOT))}</div>`;   // the spot is picked on the Forecast tab or follows your position
+ const ns=noSpot(),head=ns?'':`<div class="spn">${esc2(lname(SPOT))}</div>`;   // the spot is picked on the Forecast tab or follows your position
  let h;
- if(!a){const sv=LSUM&&find(LSUM);
+ if(!a&&ns)h=`<div class="lcard spset"><div><b>Set your fishing spot</b><div class="mu">So tides and weather match where you fish.</div></div><button class="ib" data-a="setspot">Set</button></div>${orb('<b>START</b><small>SESSION</small>','start','',1)}<div class="last">${lastLine()}</div>`;
+ else if(!a){const sv=LSUM&&find(LSUM);
   const dr=draftOf(sv);
   const ph=dr?`<div class="lcard"><b>New spot here?</b><div class="mu">Name it so your next sessions here group together.</div><input id="nsname" placeholder="Spot name"><div class="row2"><button class="bigx bigs" style="background:var(--ac);flex:1;margin:0" data-a="nsave">Save name</button><button class="ib" data-a="nskip">Skip</button></div></div>`:'';
   h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${tideTxt()}</div>${HERE?`<div class="posl" style="margin:-4px 0 4px">📍 ${HERE.new?'New location · you can name it after the session':'You’re at <b>'+esc2(HERE.n)+'</b>'}</div>`:''}${orb('<b>START</b><small>SESSION</small>','start')}<div class="last">${[condTxt(),lastLine()].filter(Boolean).join(' · ')}</div>`}
@@ -819,8 +825,29 @@ function sumCard(x,open){
  return `<div class="lcard sc${open?' op':''}"><div class="row1"><span><b>${sday(x.s)}</b> · ${esc2(x.sp.n)}</span><span class="chev">${open?'▴':'▾'}</span></div>
  <div class="mu">${hm(dur)} · <b>${n?cn(n):'Nothing caught'}</b>${n&&dur>=6e5?' · '+r1(n/(dur/36e5))+'/hr':''}</div>${n?`<div class="fl">${fishLine(x)}</div>`:''}</div>`}
 const sessDetail=x=>{const cb=x.c.some(f=>f.bait);return`<div class="mu">${stm(x.s)}–${stm(x.e||Date.now())} · ${condLine(x.cond)}</div>${x.rig?`<div class="mu">Rig: ${esc2(x.rig)}</div>`:''}${!cb&&baitsOf(x).length?`<div class="mu">Bait: ${baitsOf(x).map(esc2).join(', ')}</div>`:''}`};
+// Import a backup file. Nothing changes until you confirm. Sessions already here (same id) are skipped; new ones are added.
+// An older backup is the bare log, a newer one is {app,v,log,spots}. Both work. Ids are rebuilt from names on save.
+let IMP=null;
+function readBackup(txt){let j;try{j=JSON.parse(txt)}catch(e){return null}
+ const lg=j&&j.log&&j.log.sessions?j.log:j&&j.sessions?j:null;if(!lg||!Array.isArray(lg.sessions))return null;
+ const ok=x=>x&&typeof x.id=='string'&&typeof x.s=='number'&&Array.isArray(x.c)&&x.sp&&typeof x.sp.lat=='number'&&typeof x.sp.lon=='number';
+ const have=new Set(LOG.sessions.map(x=>x.id).concat(LOG.active?[LOG.active.id]:[])),good=lg.sessions.filter(ok);
+ const fresh=good.filter(x=>!have.has(x.id)&&x.e);
+ return{sess:fresh,dup:good.length-fresh.length,bad:lg.sessions.length-good.length,ls:lg.ls||null,baits:lg.baits||null,spots:Array.isArray(j.spots)?j.spots.filter(p=>p&&typeof p.lat=='number'&&typeof p.lon=='number'&&p.n):[]}}
+function doImport(){const m=IMP;if(!m)return;
+ m.sess.forEach(x=>{['si','bi','ri'].forEach(k=>{delete x[k]});x.c.forEach(f=>['si','bi','ri'].forEach(k=>{delete f[k]}));LOG.sessions.push(x)});
+ LOG.sessions.sort((a,b)=>b.s-a.s);
+ if(m.ls){LOG.ls=LOG.ls||{};Object.keys(m.ls).forEach(k=>{const o=m.ls[k];if(!o)return;if(!LOG.ls[k])LOG.ls[k]=o;else LOG.ls[k].add=[...new Set([...(LOG.ls[k].add||[]),...(o.add||[])])]})}
+ if(m.baits){LOG.baits=[...new Set([...(LOG.baits||[]),...m.baits])]}
+ let sp=0;m.spots.forEach(p=>{if(!SPOTS.some(x=>km(p.lat,p.lon,x.lat,x.lon)<=NEARKM)){const c=Object.assign({},p);delete c.draft;SPOTS.push(c);sp++}});
+ const n=m.sess.length;IMP=null;lsave();if(sp)save();say(n?'Added '+n+(n==1?' session':' sessions'):'Nothing new to add',2400);rall()}
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.id=='impf'&&t.files&&t.files[0]){
+ t.files[0].text().then(txt=>{const m=readBackup(txt);t.value='';if(!m){IMP=null;say('That file is not a fishing log backup',2600)}else IMP=m;rlog()}).catch(()=>say('Couldn’t read that file'))}});
+function impBar(){const m=IMP;if(!m)return'';const n=m.sess.length;
+ return`<div class="lcard"><div><b>${n?`Add ${n} ${n==1?'session':'sessions'} from this backup?`:'Nothing new in this backup'}</b></div><div class="mu">${m.dup?m.dup+' already here. ':''}${m.bad?m.bad+' could not be read. ':''}${n?'Your current sessions stay as they are.':''}</div>
+ <div class="seg2">${n?'<button class="ib" style="background:var(--ac);color:#fff;border-color:var(--ac)" data-a="impgo">Add</button>':''}<button class="ib" data-a="impno">${n?'Cancel':'Close'}</button></div></div>`}
 function vHist(){
- let h=LOG.sessions.length?'':'<p class="mu">No sessions yet. Your first one will show up here.</p>';
+ let h=impBar()+(LOG.sessions.length?'':'<p class="mu">No sessions yet. Your first one will show up here.</p>');
  h+=LOG.sessions.map(x=>{const open=LOPEN==x.id;
   return `<div class="sess"><div class="lrow" data-a="open" data-id="${x.id}">${sumCard(x,open)}</div>`+(open?`<div class="lcard dt">${sessDetail(x)}
    ${x.pos||x.c.some(f=>f.pos)?`<div class="mu" style="margin-top:8px">Catch spots${x.pos?' · '+fmtPos(x.pos):''}</div><div id="smap" class="smap"></div>`:''}
@@ -828,6 +855,7 @@ function vHist(){
    <div class="mu" style="margin-top:10px">Notes</div><textarea id="lnote" data-id="${x.id}" placeholder="Notes">${esc2(x.note||'')}</textarea>
    ${LCONF==x.id?`<button class="bigx" data-a="del" data-id="${x.id}">Really delete this session</button><button class="ib" data-a="nodel">Cancel</button>`:`<button class="ib" data-a="askdel" data-id="${x.id}">Delete session</button>`}</div>`:'')+'</div>'}).join('');
  h+=`<button class="ib" data-a="past">${LPAST?'Cancel':'+ Add a past session'}</button>${LPAST?vPastForm():''}`;
+ h+=`<input type="file" id="impf" accept=".json,application/json" hidden><button class="ib" data-a="imp">Import backup</button>`;
  if(LOG.sessions.length)h+=`<button class="ib" data-a="csv">Export CSV</button><button class="ib" data-a="json">Export backup (JSON)</button>`;
  return h}
 // ---- Insights: catches per hour in each condition bucket, from your own sessions ----
@@ -895,6 +923,7 @@ function lclick(e){
  const edit=fn=>{if(f){fn();lsave();if(d.sh)sheetOpen(i);rsheet();rlog()}};
  switch(d.a){
   case'start':logStart();break;
+  case'setspot':tab('set');setPage('find');break;
   case'pin':if(a)openMap(-2);break;
   case'nsave':{const v=($('#nsname').value||'').trim().slice(0,40),dd=draftOf(LSUM&&find(LSUM));if(!dd)break;if(!v){say('Type a name, or tap Skip');break}nameSpot(dd,v);say('Spot saved');rfish()}break;
   case'nskip':{const dd=draftOf(LSUM&&find(LSUM));if(dd)nameSpot(dd,'Unnamed spot');rfish()}break;
@@ -926,7 +955,10 @@ function lclick(e){
   case'nodel':LCONF=null;rlog();break;
   case'del':delSession(d.id);say('Session deleted');break;
   case'csv':dl('fishing-log.csv',csv(),'text/csv');break;
-  case'json':dl('fishing-log.json',JSON.stringify(LOG,null,1),'application/json');break}}
+  case'json':dl('fishing-log.json',JSON.stringify({app:'nsfh',v:2,log:LOG,spots:SPOTS.filter(p=>!p.draft)},null,1),'application/json');break;
+  case'imp':{const el=$('#impf');if(el)el.click()}break;
+  case'impgo':doImport();break;
+  case'impno':IMP=null;rlog();break}}
 ['#fishv','#sheet','#logw','#strip'].forEach(q=>$(q).addEventListener('click',lclick));
 $('#nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b)tab(b.dataset.t)};
 // Typing in the size or bait box: save without redrawing (the keyboard stays up) and give the sheet more time.
