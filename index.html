@@ -159,6 +159,12 @@ html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hid
 #lbody .seg2{display:flex;gap:8px;margin-top:10px}#lbody .seg2 button{flex:1;margin:0}
 .spset{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px}.spset .ib{width:auto;margin:0;padding:10px 18px;background:var(--ac);color:#fff;border-color:var(--ac)}
 .orbb:disabled{filter:grayscale(1);opacity:.4;cursor:not-allowed;transform:none}
+.shr{display:flex;gap:14px;align-items:center}.lnk.cam{font-size:20px;padding:0 4px;text-decoration:none}
+.pimg{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none;background:var(--bg);border:1px solid var(--bd)}
+.ths{display:flex;gap:6px;align-items:center;margin-top:8px}.th2{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--bg)}
+#pv{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px}#pv[hidden]{display:none}
+#pv img{max-width:100%;max-height:72vh;border-radius:12px;object-fit:contain}#pv .pvr{display:flex;gap:10px}#pv .pvr button{min-width:130px;margin:0}
+.sbody .pimg{align-self:center}.sbody .phadd{align-self:center}
 </style></head>
 <body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show on the Settings tab. -->
 <div id="topw"><header class="brand" id="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div></header></div>
@@ -188,6 +194,7 @@ html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hid
   <p class="hint">Wind and current always show in knots.</p>
  </div>
  <div class="pg" data-pg="about">
+ <div class="lcard"><b>Photos</b><div class="mu" id="phinfo">…</div><div class="mu">Photos stay on this phone. They are not in the backup file.</div></div>
  <div class="about lcard"><p><b>Forecasts are estimates.</b> Do not rely on this app for navigation, boating safety, or any decision where weather could put you at risk. Check official marine forecasts and local conditions before you go out.</p><p><b>Data sources</b><br>Weather, waves, currents and sea level: Open-Meteo.com.<br>US tide predictions: NOAA Tides and Currents.<br>Maps: OpenStreetMap contributors.<br>Tides outside the US are model estimates, not official tide tables.</p><p><b>Your data</b><br>Your spots, limits, settings, fishing log (with the position of each session and catch) and last forecast are saved on this device only. Place searches and spot coordinates are sent to Open-Meteo to get forecasts.</p><p><a href="privacy.html">Privacy policy</a></p><p class="hint" style="margin:0">Not Sure Fishing Helper, version 1.0</p></div>
  </div>
 </div>
@@ -210,6 +217,8 @@ html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hid
   <div class="mrow"><button id="mnear" class="alt3">Use nearest station</button><button id="msave">Save spot</button></div>
  </div>
 </div>
+<input type="file" id="phf" accept="image/*" hidden>
+<div id="pv" data-a="pvx" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
 // Not Sure Fishing Helper.
@@ -402,7 +411,7 @@ let SPG='lists',LTAB='fish',SLAST={};
 const sgOf=(p,t)=>SGRP.find(g=>g[2].some(z=>z[0]==p&&(p!='lists'||z[1]==t)));
 function setPage(p,t){SPG=p;if(t)LTAB=t;LUND=null;LE=null;MG=null;MUND=null;EDIT=-1;CONF=-1;
  document.querySelector('.ctl').dataset.p=p;document.querySelectorAll('.ctl .pg').forEach(e=>{e.hidden=e.dataset.pg!=p});
- rtabs();if(p=='lists')rlists();document.body.scrollTop=0}
+ rtabs();if(p=='about')phStats();if(p=='lists')rlists();document.body.scrollTop=0}
 function rtabs(){const g=sgOf(SPG,LTAB);SLAST[g[0]]=[SPG,LTAB];
  $('#stabs').innerHTML=`<div class="tabs">${SGRP.map(x=>`<button class="tab${x==g?' on':''}" data-sg="${x[0]}">${x[1]}</button>`).join('')}</div><div class="tabs sub">${g[2].map(z=>`<button class="tab${z[0]==SPG&&(z[0]!='lists'||z[1]==LTAB)?' on':''}" data-ss="${z[0]}|${z[1]}">${z[2]}</button>`).join('')}</div>`}
 const LKEY={fish:'sp',bait:'bt',rig:'rg'};
@@ -654,7 +663,7 @@ function logCatch(){
 function logStop(){
  const a=LOG.active;if(!a)return;
  a.e=Date.now();LOG.sessions.unshift(a);LOG.active=null;LSUM=a.id;LSTOP=0;LSEL=-1;clearTimeout(SHT);lsave();rall()}
-function delSession(id){LOG.sessions=LOG.sessions.filter(x=>x.id!=id);LOPEN=null;LCONF=null;lsave();rlog()}
+function delSession(id){phDel(((LOG.sessions.find(x=>x.id==id)||{c:[]}).c).flatMap(f=>f.ph||[]));LOG.sessions=LOG.sessions.filter(x=>x.id!=id);LOPEN=null;LCONF=null;lsave();rlog()}
 // Add a session you forgot to log. No conditions are stored for it: the forecast cannot look back.
 function addPast(date,start,hrs,n){
  const s0=new Date(date+'T'+(start||'06:00')).getTime();if(isNaN(s0))return false;
@@ -708,7 +717,7 @@ function rfish(){
  const a=LOG.active;const ae=document.activeElement;if(ae&&ae.id=='nsname')return;   // do not rebuild while typing
  const ns=noSpot(),head=ns?'':`<div class="spn">${esc2(lname(SPOT))}</div>`;   // the spot is picked on the Forecast tab or follows your position
  let h;
- if(!a&&ns)h=`<div class="lcard spset"><div><b>Set your fishing spot</b><div class="mu">So tides and weather match where you fish.</div></div><button class="ib" data-a="setspot">Set</button></div>${orb('<b>START</b><small>SESSION</small>','start','',1)}<div class="last">${lastLine()}</div>`;
+ if(!a&&ns)h=`<div class="lcard spset"><div><b>Set your fishing spot</b><div class="mu">So tides and weather match where you fish.</div><button class="lnk" data-a="tryspot">or try it with a test spot</button></div><button class="ib" data-a="setspot">Set</button></div>${orb('<b>START</b><small>SESSION</small>','start','',1)}<div class="last">${lastLine()}</div>`;
  else if(!a){const sv=LSUM&&find(LSUM);
   const dr=draftOf(sv);
   const ph=dr?`<div class="lcard"><b>New spot here?</b><div class="mu">Name it so your next sessions here group together.</div><input id="nsname" placeholder="Spot name"><div class="row2"><button class="bigx bigs" style="background:var(--ac);flex:1;margin:0" data-a="nsave">Save name</button><button class="ib" data-a="nskip">Skip</button></div></div>`:'';
@@ -805,25 +814,48 @@ function chips(x,i,sh){
    `<input class="bin" id="bin${sh?'s':'h'}" maxlength="30" placeholder="Other bait" aria-label="Other bait" value="${bl.includes(f.bait)?'':esc2(f.bait||'')}" ${b}>`;
  // Order: fish, size, bait. The quick sheet shows one step at a time; the history editor shows all three.
  if(sh){
-  if(!SEXP)return `<div class="lcard sht"><div class="shh"><span class="ok2">✓ Catch ${i+1} saved</span><button class="lnk" data-a="more" ${b}>Add details ›</button></div></div>`;
-  const st=SSTEP,tb=[['🐟','Fish',f.sp],['📏','Size',f.sz||f.len||f.out],['🪝','Bait',f.bait]].map((z,k)=>`<button class="${k==st?'on':''}${z[2]?' set':''}" data-a="step" data-v="${k}" ${b} aria-label="${z[1]}${z[2]?' (set)':''}">${z[0]}</button>`).join(''),
-   body=st==0?sp:st==1?sz:`${bt}<button data-a="nobait" ${b}>No bait</button>`;
+  if(!SEXP)return `<div class="lcard sht"><div class="shh"><span class="ok2">✓ Catch ${i+1} saved</span><span class="shr"><button class="lnk cam" data-a="photo" ${b} aria-label="${f.ph&&f.ph.length?'Add another photo':'Add a photo'}">📷${f.ph&&f.ph.length?'✓':''}</button><button class="lnk" data-a="more" ${b}>Add details ›</button></span></div></div>`;
+  const st=SSTEP,tb=[['🐟','Fish',f.sp],['📏','Size',f.sz||f.len||f.out],['🪝','Bait',f.bait],['📷','Photo',f.ph&&f.ph.length]].map((z,k)=>`<button class="${k==st?'on':''}${z[2]?' set':''}" data-a="step" data-v="${k}" ${b} aria-label="${z[1]}${z[2]?' (set)':''}">${z[0]}</button>`).join(''),
+   pn=(f.ph||[]).length,pb=`${(f.ph||[]).map(id=>`<img class="pimg" data-ph="${id}" data-a="phv" data-id="${x.id}" data-i="${i}" alt="Photo, tap to enlarge">`).join('')}<button class="phadd" data-a="photo" ${b}>📷 ${pn?'Add another':'Add a photo'}</button>`,
+   body=st==0?sp:st==1?sz:st==2?`${bt}<button data-a="nobait" ${b}>No bait</button>`:pb;
   return `<div class="lcard sht"><div class="shh"><span class="ok2">✓ Saved</span><button class="xb" data-a="closesheet" ${b} aria-label="Close">✕</button></div><div class="chp itabs">${tb}</div><div class="chp stp sbody${st==1?' szr':''}">${body}</div></div>`}
- return `<div class="lcard"><div class="mu">Catch ${i+1} · ${stm(f.t)}</div><div class="chp">${sp}</div><div class="chp szr">${sz}</div><div class="chp">${bt}</div><div class="chp"><button data-a="rm" ${b}>Remove</button></div></div>`}
+ return `<div class="lcard"><div class="mu">Catch ${i+1} · ${stm(f.t)}</div><div class="chp">${sp}</div><div class="chp szr">${sz}</div><div class="chp">${bt}</div><div class="chp">${(f.ph||[]).map(id=>`<img class="pimg" data-ph="${id}" data-a="phv" data-id="${x.id}" data-i="${i}" alt="Photo, tap to enlarge">`).join('')}<button data-a="photo" ${b}>📷 ${(f.ph||[]).length?'Add another':'Add a photo'}</button><button data-a="rm" ${b}>Remove</button></div></div>`}
 function vPastForm(){const t=new Date().toISOString().slice(0,10);
  return `<div class="lcard"><label class="mu">Date</label><input id="pd" type="date" value="${t}" max="${t}">
  <label class="mu">Started</label><input id="ps" type="time" value="06:00"><label class="mu">Hours fished</label><input id="ph" type="number" value="3" min="0.25" max="24" step="0.25">
  <label class="mu">Catches</label><input id="pn" type="number" value="0" min="0" max="200"><button class="bigx bigs" style="background:var(--ac)" data-a="addpast">Save past session</button></div>`}
 // One row per catch: the fish, kept or released, its size, and what it was caught on. Shown on the card until the session is opened for editing.
+// ---- Photos ----
+// A photo is a small JPEG kept in IndexedDB on this phone. The catch only stores the photo ids (f.ph). Photos are not in the JSON backup.
+const PHO={db:null,urls:{}};let PHC=null,PHI=-1,PV=null;
+const phDb=()=>new Promise((res,rej)=>{if(PHO.db)return res(PHO.db);try{const r=window.indexedDB.open('nsfh-ph',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>{PHO.db=r.result;res(PHO.db)};r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const phTx=(m,fn)=>phDb().then(db=>new Promise((res,rej)=>{const t=db.transaction('p',m),q=fn(t.objectStore('p'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)}));
+const phPut=(id,b)=>phTx('readwrite',st=>st.put(b,id)),phGet=id=>phTx('readonly',st=>st.get(id));
+function phDel(ids){if(!ids||!ids.length)return;ids.forEach(i=>{if(PHO.urls[i]){URL.revokeObjectURL(PHO.urls[i]);delete PHO.urls[i]}});phTx('readwrite',st=>{ids.forEach(i=>st.delete(i))}).catch(()=>{})}
+async function phShrink(file){const bm=await window.createImageBitmap(file,{imageOrientation:'from-image'}),k=Math.min(1,1600/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
+ c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);if(bm.close)bm.close();return new Promise(r=>c.toBlob(r,'image/jpeg',.82))}
+function phHydrate(){document.querySelectorAll('img[data-ph]').forEach(im=>{const id=im.dataset.ph;
+ if(PHO.urls[id]){if(im.getAttribute('src')!=PHO.urls[id])im.src=PHO.urls[id];return}
+ phGet(id).then(b=>{if(!b){im.style.visibility='hidden';return}PHO.urls[id]=URL.createObjectURL(b);document.querySelectorAll('img[data-ph="'+id+'"]').forEach(z=>{z.src=PHO.urls[id]})}).catch(()=>{im.style.visibility='hidden'})})}
+let PHQ=0;if(window.MutationObserver)new window.MutationObserver(()=>{clearTimeout(PHQ);PHQ=setTimeout(phHydrate,30)}).observe(document.body,{childList:true,subtree:true});
+function phBack(i){if(LOG.active&&LOG.active.c[i]===PHC)sheetOpen(i);rsheet();rlog()}
+document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!='phf'||!t.files||!t.files[0])return;const file=t.files[0],f=PHC,i=PHI;t.value='';
+ phShrink(file).then(b=>{if(!b)throw new Error('x');const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return phPut(id,b).then(()=>{f.ph=[...(f.ph||[]),id];lsave();say('Photo added');phBack(i)})}).catch(()=>{say('Couldn’t save the photo');phBack(i)})});
+document.addEventListener('cancel',e=>{if(e.target&&e.target.id=='phf')phBack(PHI)},true);
+function rpv(){const p=$('#pv');if(!PV){p.hidden=true;p.innerHTML='';return}p.hidden=false;
+ p.innerHTML=`<img data-ph="${PV.ph}" alt="Catch photo"><div class="pvr"><button class="ib" data-a="pvx">Close</button><button class="ib" data-a="pvdel">${PV.conf?'Really delete':'Delete photo'}</button></div>`}
+function phStats(){const el=$('#phinfo');if(!el)return;phTx('readonly',st=>st.getAll()).then(a=>{const n=a.length,mb=a.reduce((m,b)=>m+b.size,0)/1048576;el.textContent=n?n+(n==1?' photo':' photos')+' on this device · '+mb.toFixed(1)+' MB':'No photos yet'}).catch(()=>{el.textContent='Photos are not available in this browser'})}
 const catchRow=(x,f)=>{const o=outOf(f),pb=f.len&&f.sp&&f.len==maxLen(f.sp);
- return`<div class="cr"><span class="ci">🐟</span><div><div class="cn1">${esc2(f.sp||'Catch')}${f.len?' '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}${o?`<span class="tg ${o}">${o=='kept'?'kept':'released'}</span>`:''}${pb?'<span class="tg pb">PB</span>':''}${f.sz&&!f.len&&szName(f.sz)?`<span class="mu"> · ${szName(f.sz)}</span>`:''}</div>
+ const p0=f.ph&&f.ph[0];
+ return`<div class="cr">${p0?`<img class="pimg" data-ph="${p0}" data-a="phv" data-id="${x.id}" data-i="${x.c.indexOf(f)}" alt="Photo, tap to enlarge">`:'<span class="ci">🐟</span>'}<div><div class="cn1">${esc2(f.sp||'Catch')}${f.len?' '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}${o?`<span class="tg ${o}">${o=='kept'?'kept':'released'}</span>`:''}${pb?'<span class="tg pb">PB</span>':''}${f.sz&&!f.len&&szName(f.sz)?`<span class="mu"> · ${szName(f.sz)}</span>`:''}</div>
  <div class="mu">${stm(f.t)} · ${f.bait?'on <b>'+esc2(f.bait)+'</b>':'no bait noted'}${f.pos?' · 📍':''}</div></div></div>`};
 // Collapsed card: day and spot, how long, how many fish, and which fish. Conditions, rig, notes and each catch are in the opened card.
 function fishLine(x){const m={};x.c.forEach(f=>{const k=f.sp||'Catch';m[k]=(m[k]||0)+1});return Object.keys(m).map(k=>esc2(k)+(m[k]>1?' ×'+m[k]:'')).join(' · ')}
 function sumCard(x,open){
  const n=x.c.length,dur=(x.e||Date.now())-x.s;
  return `<div class="lcard sc${open?' op':''}"><div class="row1"><span><b>${sday(x.s)}</b> · ${esc2(x.sp.n)}</span><span class="chev">${open?'▴':'▾'}</span></div>
- <div class="mu">${hm(dur)} · <b>${n?cn(n):'Nothing caught'}</b>${n&&dur>=6e5?' · '+r1(n/(dur/36e5))+'/hr':''}</div>${n?`<div class="fl">${fishLine(x)}</div>`:''}</div>`}
+ <div class="mu">${hm(dur)} · <b>${n?cn(n):'Nothing caught'}</b>${n&&dur>=6e5?' · '+r1(n/(dur/36e5))+'/hr':''}</div>${n?`<div class="fl">${fishLine(x)}</div>`:''}${!open&&x.c.some(f=>f.ph&&f.ph.length)?(()=>{const ids=x.c.flatMap(f=>f.ph||[]);return`<div class="ths">${ids.slice(0,4).map(id=>`<img class="th2" data-ph="${id}" alt="">`).join('')}${ids.length>4?`<span class="mu">+${ids.length-4}</span>`:''}</div>`})():''}</div>`}
 const sessDetail=x=>{const cb=x.c.some(f=>f.bait);return`<div class="mu">${stm(x.s)}–${stm(x.e||Date.now())} · ${condLine(x.cond)}</div>${x.rig?`<div class="mu">Rig: ${esc2(x.rig)}</div>`:''}${!cb&&baitsOf(x).length?`<div class="mu">Bait: ${baitsOf(x).map(esc2).join(', ')}</div>`:''}`};
 // Import a backup file. Nothing changes until you confirm. Sessions already here (same id) are skipped; new ones are added.
 // An older backup is the bare log, a newer one is {app,v,log,spots}. Both work. Ids are rebuilt from names on save.
@@ -835,7 +867,7 @@ function readBackup(txt){let j;try{j=JSON.parse(txt)}catch(e){return null}
  const fresh=good.filter(x=>!have.has(x.id)&&x.e);
  return{sess:fresh,dup:good.length-fresh.length,bad:lg.sessions.length-good.length,ls:lg.ls||null,baits:lg.baits||null,spots:Array.isArray(j.spots)?j.spots.filter(p=>p&&typeof p.lat=='number'&&typeof p.lon=='number'&&p.n):[]}}
 function doImport(){const m=IMP;if(!m)return;
- m.sess.forEach(x=>{['si','bi','ri'].forEach(k=>{delete x[k]});x.c.forEach(f=>['si','bi','ri'].forEach(k=>{delete f[k]}));LOG.sessions.push(x)});
+ m.sess.forEach(x=>{['si','bi','ri'].forEach(k=>{delete x[k]});x.c.forEach(f=>['si','bi','ri','ph'].forEach(k=>{delete f[k]}));LOG.sessions.push(x)});
  LOG.sessions.sort((a,b)=>b.s-a.s);
  if(m.ls){LOG.ls=LOG.ls||{};Object.keys(m.ls).forEach(k=>{const o=m.ls[k];if(!o)return;if(!LOG.ls[k])LOG.ls[k]=o;else LOG.ls[k].add=[...new Set([...(LOG.ls[k].add||[]),...(o.add||[])])]})}
  if(m.baits){LOG.baits=[...new Set([...(LOG.baits||[]),...m.baits])]}
@@ -924,6 +956,11 @@ function lclick(e){
  switch(d.a){
   case'start':logStart();break;
   case'setspot':tab('set');setPage('find');break;
+  case'tryspot':{const t={n:'Test spot',st:null,lat:40.7128,lon:-74.006};SPOTS.push(t);const di=SPOTS.findIndex(p=>p.lat==64.147&&p.lon==-21.94);if(di>=0)SPOTS.splice(di,1);SPOT=t;fillSp(SPOTS.indexOf(t));save();sample();draw();live();say('Test spot added. Delete it in Settings, Spots.',3200);rall()}break;
+  case'photo':if(f){PHC=f;PHI=i;clearTimeout(SHT);drain(0);$('#phf').click()}break;
+  case'phv':PV={ph:d.ph,sid:d.id,i:+d.i,conf:0};rpv();break;
+  case'pvx':PV=null;rpv();break;
+  case'pvdel':if(!PV)break;if(!PV.conf){PV.conf=1;rpv();break}{const px=find(PV.sid),pf=px&&px.c[PV.i];if(pf)pf.ph=(pf.ph||[]).filter(z=>z!=PV.ph);phDel([PV.ph]);PV=null;lsave();rpv();rlog()}break;
   case'pin':if(a)openMap(-2);break;
   case'nsave':{const v=($('#nsname').value||'').trim().slice(0,40),dd=draftOf(LSUM&&find(LSUM));if(!dd)break;if(!v){say('Type a name, or tap Skip');break}nameSpot(dd,v);say('Spot saved');rfish()}break;
   case'nskip':{const dd=draftOf(LSUM&&find(LSUM));if(dd)nameSpot(dd,'Unnamed spot');rfish()}break;
@@ -932,7 +969,7 @@ function lclick(e){
   case'rigx':RIGPICK=0;rsheet();break;
   case'rigpick':if(a){a.rig=d.v||'';RIGPICK=0;lsave();rall()}break;
   case'edit1':if(a&&a.c.length){SSTEP=0;SEXP=1;sheetOpen(a.c.length-1);rall()}break;
-  case'undo1':if(a&&a.c.length){a.c.pop();LSEL=-1;lsave();say('Last catch removed');rall()}break;
+  case'undo1':if(a&&a.c.length){phDel(a.c.pop().ph);LSEL=-1;lsave();say('Last catch removed');rall()}break;
   case'sp':edit(()=>{f.sp=f.sp==d.v?'':d.v;if(d.sh&&f.sp)SSTEP=1});break;
   case'out':edit(()=>{f.out=d.v;if(d.v=='kept'&&SZR.some(z=>z[0]==f.sz))f.sz=''});break;
   case'lenstep':edit(()=>{const cur=f.len?lenShow(f.len):lenShow(lastLen(f.sp)),v=Math.max(1,+cur+(+d.v)*(f.len?1:0));f.len=lenParse(v);f.out='kept';if(SZR.some(z=>z[0]==f.sz))f.sz=''});break;
@@ -959,7 +996,7 @@ function lclick(e){
   case'imp':{const el=$('#impf');if(el)el.click()}break;
   case'impgo':doImport();break;
   case'impno':IMP=null;rlog();break}}
-['#fishv','#sheet','#logw','#strip'].forEach(q=>$(q).addEventListener('click',lclick));
+['#fishv','#sheet','#logw','#strip','#pv'].forEach(q=>$(q).addEventListener('click',lclick));
 $('#nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b)tab(b.dataset.t)};
 // Typing in the size or bait box: save without redrawing (the keyboard stays up) and give the sheet more time.
 const isBox=t=>!!(t&&t.classList&&(t.classList.contains('lenin')||t.classList.contains('bin')));
