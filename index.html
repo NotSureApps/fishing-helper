@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a4a66">
+<meta name="theme-color" content="#f2f6f9">
 <meta name="description" content="Tides, wind, waves and rain for planning your fishing days.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -18,7 +18,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:520px;margin:0 auto;padding:14px}
-.brand{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0b6e99,#0a4a66);color:#fff;border-radius:14px;padding:8px 12px;margin-bottom:10px}.brand h1{margin:0;font-size:17px;letter-spacing:-.2px}.brand p{display:none}.logo{width:34px;height:34px;flex:none;margin:0}main{display:flex;flex-direction:column}.ctl{order:9;margin:6px 0 0}
+.brand{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0b6e99,#0a4a66);color:#fff;border-radius:14px;padding:8px 12px;margin-bottom:10px}.brand h1{margin:0;font-size:17px;letter-spacing:-.2px}.logo{width:34px;height:34px;flex:none;margin:0}main{display:flex;flex-direction:column}.ctl{order:9;margin:6px 0 0}
 .ctl{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:12px;display:grid;gap:10px}
 .ctl label{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--mu);font-size:13px}
 select,button{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px 10px}
@@ -37,7 +37,7 @@ input[type=range]{flex:1;accent-color:var(--ac)}
 svg{width:100%;height:auto;margin-top:8px;display:block}
 .t1{fill:var(--ac);opacity:.18}.t2{stroke:var(--ac);fill:none;stroke-width:2}
 .w1{stroke:var(--wd);fill:none;stroke-width:2}.w2{stroke:var(--wd);stroke-dasharray:4 3;opacity:.6}.g1{stroke:var(--poor);fill:none;stroke-width:1.5;stroke-dasharray:1.5 2.5;stroke-linecap:round}.rb{fill:var(--ac);opacity:.5}
-.ax{fill:var(--mu);font-size:11px}.nw{stroke:var(--tx);stroke-width:1.5}.v1{stroke:#9b6bf2;fill:none;stroke-width:2}.tabs{display:flex;gap:6px;margin-top:10px}.tab{padding:11px 14px;font-size:14px;background:var(--bg);color:var(--mu);border:1px solid var(--bd)}.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}#chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding:2px 2px 4px}.chip{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:8px 2px}.chip small{font-size:11px;color:var(--mu);font-weight:400}.chip b{font-size:17px}.chip.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}.dot{width:18px;height:18px;border-radius:50%;display:block;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px;text-align:center}.tabs{flex-wrap:wrap}.gl{stroke:var(--bd);stroke-width:1}.c1{stroke:#14b8a6;fill:none;stroke-width:2}main:not(.s) .ctl{display:none}main.s #chips,main.s #days,main.s #spn{display:none}#gear{margin-left:auto;background:rgba(255,255,255,.2);padding:8px 10px;font-size:18px}.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.bar button{padding:10px 14px;font-size:14px}.bar select{flex:1;min-width:0;font-size:15px;font-weight:600;padding:10px}.warn{background:var(--poor);color:#fff;font-weight:700;font-size:14px;padding:10px 12px;border-radius:10px;margin-bottom:10px}.warn[hidden],main.s .warn{display:none}.sum{font-size:14px;line-height:1.45;margin:0 0 10px}.sum b{display:block;font-size:15px}#st{margin:0 2px 10px}main.s .bar,main.s #st{display:none}.srch{display:flex;gap:6px}.ctl{padding:14px;gap:14px;margin-bottom:24px}.ctl label{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}.ctl label input[type=range]{grid-column:1/-1;width:100%;height:28px;margin:0}#res:empty{display:none}.ctl .tabs{margin-top:6px}.ctl .pt{margin-top:0}#back{justify-self:start}.ctl{grid-template-columns:minmax(0,1fr)}.ctl>*{min-width:0}.ctl label b{grid-row:1;grid-column:2}.ctl label input[type=range]{grid-row:2}#st.warn{background:#fdf0c8;color:#5a4300;border:1px solid #e5c862;font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px}@media(prefers-color-scheme:dark){#st.warn{background:#3a3010;color:#f5e3a0;border-color:#6b5a1a}}@media(prefers-color-scheme:dark){.warn{color:#2a0b08}.badge,.dot{color:#10202a}}.sh{margin:0;font-size:16px;padding-top:14px;border-top:1px solid var(--bd)}.sh:first-of-type{border-top:0;padding-top:0}.hint{margin:-6px 0 0;font-size:13px;color:var(--mu)}#mys{display:grid;gap:8px}#mys .hint{margin:0}.sp{display:flex;align-items:center;gap:6px}.sp span{flex:1;min-width:0;font-size:14px;overflow-wrap:anywhere}.sp input{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px}.sp button{padding:10px 12px;font-size:13px}.sp .alt{background:var(--bg);color:var(--tx);border:1px solid var(--bd);font-weight:400}.sp .alt[data-x],.sp .alt[data-y]{color:var(--poor)}.srch input{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px 10px}#res{font-size:13px;color:var(--mu)}#res button{display:block;width:100%;text-align:left;margin-top:4px;background:var(--bg);color:var(--tx);font-weight:400;border:1px solid var(--bd)}.pt{font-size:13px;color:var(--mu);margin-top:8px}
+.ax{fill:var(--mu);font-size:11px}.nw{stroke:var(--tx);stroke-width:1.5}.v1{stroke:#9b6bf2;fill:none;stroke-width:2}.tabs{display:flex;gap:6px;margin-top:10px}.tab{padding:11px 14px;font-size:14px;background:var(--bg);color:var(--mu);border:1px solid var(--bd)}.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}#chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding:2px 2px 4px}.chip{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:8px 2px}.chip small{font-size:11px;color:var(--mu);font-weight:400}.chip b{font-size:17px}.chip.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}.dot{width:18px;height:18px;border-radius:50%;display:block;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px;text-align:center}.tabs{flex-wrap:wrap}.gl{stroke:var(--bd);stroke-width:1}.c1{stroke:#14b8a6;fill:none;stroke-width:2}main:not(.s) .ctl{display:none}main.s #chips,main.s #days{display:none}#gear{margin-left:auto;background:rgba(255,255,255,.2);padding:8px 10px;font-size:18px}.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.bar button{padding:10px 14px;font-size:14px}.bar select{flex:1;min-width:0;font-size:15px;font-weight:600;padding:10px}.warn{background:var(--poor);color:#fff;font-weight:700;font-size:14px;padding:10px 12px;border-radius:10px;margin-bottom:10px}.warn[hidden],main.s .warn{display:none}.sum{font-size:14px;line-height:1.45;margin:0 0 10px}.sum b{display:block;font-size:15px}#st{margin:0 2px 10px}main.s .bar,main.s #st{display:none}.srch{display:flex;gap:6px}.ctl{padding:14px;gap:14px;margin-bottom:24px}.ctl label{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}.ctl label input[type=range]{grid-column:1/-1;width:100%;height:28px;margin:0}#res:empty{display:none}.ctl .tabs{margin-top:6px}.ctl .pt{margin-top:0}#back{justify-self:start}.ctl{grid-template-columns:minmax(0,1fr)}.ctl>*{min-width:0}.ctl label b{grid-row:1;grid-column:2}.ctl label input[type=range]{grid-row:2}#st.warn{background:#fdf0c8;color:#5a4300;border:1px solid #e5c862;font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px}@media(prefers-color-scheme:dark){#st.warn{background:#3a3010;color:#f5e3a0;border-color:#6b5a1a}}@media(prefers-color-scheme:dark){.warn{color:#2a0b08}.badge,.dot{color:#10202a}}.sh{margin:0;font-size:16px;padding-top:14px;border-top:1px solid var(--bd)}.sh:first-of-type{border-top:0;padding-top:0}.hint{margin:-6px 0 0;font-size:13px;color:var(--mu)}#mys{display:grid;gap:8px}#mys .hint{margin:0}.sp{display:flex;align-items:center;gap:6px}.sp span{flex:1;min-width:0;font-size:14px;overflow-wrap:anywhere}.sp input{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px}.sp button{padding:10px 12px;font-size:13px}.sp .alt{background:var(--bg);color:var(--tx);border:1px solid var(--bd);font-weight:400}.sp .alt[data-x],.sp .alt[data-y]{color:var(--poor)}.srch input{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px 10px}#res{font-size:13px;color:var(--mu)}#res button{display:block;width:100%;text-align:left;margin-top:4px;background:var(--bg);color:var(--tx);font-weight:400;border:1px solid var(--bd)}.pt{font-size:13px;color:var(--mu);margin-top:8px}
 .about p{margin:0 0 12px;font-size:14px;line-height:1.5}.about a{color:var(--ac)}button:active{transform:scale(.96);filter:brightness(1.12)}#gear{transition:transform .25s,background .2s}#gear.on{transform:rotate(90deg);background:rgba(255,255,255,.38)}.st{margin:0;font-size:22px}@keyframes sin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}main.s .ctl{animation:sin .2s ease-out}#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50}#toast.show{opacity:1;transform:translate(-50%,0)}#days .tabs{gap:4px}.tp{fill:var(--ac);stroke:var(--card);stroke-width:1.5}.tl{fill:var(--tx);font-size:11px;font-weight:700}.tl2{fill:var(--mu);font-size:11px}.tm{stroke:#e0604f;fill:none;stroke-width:2}#days .tabs .tab{flex:1 1 auto;min-width:0;padding:10px 4px;text-align:center}#days .tabs .tab svg{width:22px;height:22px;margin:0 auto;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #mapw{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}#mapw[hidden]{display:none}#mapw .mh{display:flex;align-items:center;gap:12px;padding:8px 12px}#mapw .mh b{font-size:17px}#map{flex:1;min-height:0;position:relative;z-index:0}#mapw .ms{position:relative;z-index:1;padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--bd);display:grid;gap:8px}#mmsg{font-size:14px;line-height:1.4}.mrow{display:flex;gap:8px}.mrow input{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px}.mrow button{padding:11px 14px}.mrow #msave{flex:1}.alt3{background:var(--bg);color:var(--tx);border:1px solid var(--bd);font-weight:400}.pin{background:none;border:0;font-size:30px;line-height:30px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .hfair{fill:var(--fair);opacity:.2}.hpoor{fill:var(--poor);opacity:.14}
@@ -58,12 +58,17 @@ main.s~#nav{display:none}
 #strip{position:fixed;left:0;right:0;top:0;z-index:42;border-radius:0;background:var(--good);color:#06210f;padding:10px 12px;font-size:15px;text-align:center}#strip[hidden]{display:none}
 body.rec main{margin-top:42px}body.rec #logw{top:42px}
 .fh{display:flex;gap:8px;align-items:center}.fh select{flex:1;min-width:0;font-size:16px;font-weight:600;padding:12px}.fh button{width:48px;height:48px;font-size:20px;padding:0}
-.now{margin:14px 2px 10px;font-size:16px;font-weight:600;text-align:center}.last{margin:12px 2px;text-align:center;color:var(--mu);font-size:15px}
-.giant{display:block;width:100%;height:42vh;min-height:210px;font-size:38px;line-height:1.15;letter-spacing:.5px;font-weight:800;border-radius:24px;background:var(--good);color:#06210f;box-shadow:0 4px 16px #0003}
-.conf{margin:12px 0 4px}.conf .bigx{margin:0 0 8px}.giant{position:relative;overflow:hidden}.giant span{position:relative}.dr{position:absolute;inset:0;background:rgba(255,255,255,.38);transform:scaleY(0);transform-origin:bottom}.dr.go{animation:drain 6s linear forwards}@keyframes drain{from{transform:scaleY(1)}to{transform:scaleY(0)}}.tmr{font-size:46px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:14px 0 0}.sub{text-align:center;color:var(--mu);font-size:15px;margin:2px 0 12px}
+.now{margin:22px 2px 6px;font-size:16px;color:var(--mu);text-align:center}.last{margin:0 2px 14px;padding-top:10px;text-align:center;color:var(--mu);font-size:14px}
+.sl{animation:inl .26s ease-out}.sr{animation:inr .26s ease-out}@keyframes inl{from{opacity:0;transform:translateX(44px)}}@keyframes inr{from{opacity:0;transform:translateX(-44px)}}@media(prefers-reduced-motion:reduce){.sl,.sr{animation:none}}
+.orb{position:relative;width:min(300px,78vw,40vh);aspect-ratio:1;margin:auto;flex:none}.ring{position:absolute;inset:0;width:100%;height:100%;margin:0;overflow:visible}
+.ring circle{fill:none;stroke-width:10}.rt{stroke:var(--bd)}.rp{stroke:var(--ac);stroke-linecap:round}.ring .rd2{fill:var(--tx);stroke:var(--bg);stroke-width:3}
+.orbb{position:absolute;inset:8%;width:84%;height:84%;border-radius:50%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#06210f;font-weight:800;
+ background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--good) 72%,#fff),var(--good) 58%,color-mix(in srgb,var(--good) 78%,#000));box-shadow:0 10px 30px color-mix(in srgb,var(--good) 40%,transparent),inset 0 -8px 18px #0002}
+.orbb>*{position:relative}.orbb b{font-size:clamp(34px,11vw,44px);letter-spacing:1px;line-height:1.1}.orbb small{font-size:15px;letter-spacing:4px;font-weight:600}
+.conf{margin:12px 0 4px}.conf .bigx{margin:0 0 8px}.dr{position:absolute;z-index:0;inset:0;background:rgba(255,255,255,.38);transform:scaleY(0);transform-origin:bottom}.dr.go{animation:drain 6s linear forwards}@keyframes drain{from{transform:scaleY(1)}to{transform:scaleY(0)}}.tmr{font-size:46px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:14px 0 0}.sub{text-align:center;color:var(--mu);font-size:15px;margin:2px 0 12px}
 .row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}.stopb{margin-left:auto;background:none;color:var(--poor);border:2px solid var(--poor);padding:10px 16px;border-radius:12px}
 #fishv input{width:100%;margin:8px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
-#sheet{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:44;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 18px #0004;padding:4px 14px 8px;max-height:55vh;overflow:auto}#sheet[hidden]{display:none}#sheet .lcard{max-width:520px;margin:6px auto;padding:10px}.shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.shh .chp{margin:0;flex:none}.shh .chp button{padding:8px 14px}.szr{flex-wrap:nowrap;align-items:center}.szr button{flex:none}.lenin{width:84px!important;margin:0!important;padding:10px!important;text-align:center}.chp.sc{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 0;padding:0 4px 4px}.chp.sc button{flex:none}
+#sheet{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:44;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 18px #0004;padding:4px 14px 8px;max-height:55vh;overflow:auto}#sheet[hidden]{display:none}#sheet .lcard{max-width:520px;margin:6px auto;padding:10px}.shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.shh .chp{margin:0;flex:none}.shh .chp button{padding:8px 14px}.szr{flex-wrap:nowrap;align-items:center}.szr button{flex:none}.lenin{width:84px!important;margin:0!important;padding:10px!important;text-align:center;font:inherit;font-size:16px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:10px}.chp.sc{flex-wrap:nowrap;overflow-x:auto;margin:8px -4px 0;padding:0 4px 4px}.chp.sc button{flex:none}
 #mapw{z-index:60}#mapw.pm #mname,#mapw.pm #mnear{display:none}.posl{text-align:center;font-size:14px;color:var(--mu);margin:-6px 0 10px}.lnk{background:none;color:var(--ac);border:0;padding:6px 8px;font-size:14px;text-decoration:underline}.smap{height:200px;border-radius:12px;margin:6px 0;position:relative;z-index:0;overflow:hidden}
 .lh{font-size:20px;margin:2px 0 8px}
 #lbody{margin-top:12px}#lbody input,#lbody textarea{width:100%;margin:6px 0;padding:12px;font-size:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}#lbody textarea{min-height:70px}
@@ -73,9 +78,9 @@ body.rec main{margin-top:42px}body.rec #logw{top:42px}
 .ib{background:var(--bg);color:var(--tx);border:1px solid var(--bd);padding:12px 16px;border-radius:12px;margin:6px 6px 6px 0}.ib:disabled{opacity:.4}
 .pre{white-space:pre-wrap;font-size:12px;background:var(--bg);padding:10px;border-radius:8px;overflow:auto}.mu{color:var(--mu);font-size:13px}
 </style></head>
-<body data-t="fish"><!-- Main page: banner, spot picker, day boxes, details. Settings is hidden until the gear is pressed. -->
+<body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show when the gear is pressed. -->
 <main>
-<header class="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1><p>Not sure? Check the tides, wind &amp; rain.</p></div><button id="gear" aria-label="Settings">⚙️</button></header>
+<header class="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div><button id="gear" aria-label="Settings">⚙️</button></header>
 <div class="ctl">
  <button id="back">← Back to forecast</button>
  <h2 class="st">Settings</h2>
@@ -126,10 +131,10 @@ body.rec main{margin-top:42px}body.rec #logw{top:42px}
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
 // Not Sure Fishing Helper.
-// One file, no framework, no build step. Nothing to break, so nothing breaks.
-// Spots: only one by default, user adds the rest. st=null means no NOAA station, tides then come from the model.
+// One file, no framework, no build step.
+// Fishing spots: one by default, the user adds the rest. st=null means no NOAA tide station, so tides come from the model.
 const SPOTS=[{n:"Reykjavik, Iceland",st:null,lat:64.147,lon:-21.94}];
-// Global state. Yes, globals. App is small, we do not need architecture here.
+// Global state. The app is small, so plain globals are enough.
 let VIEW="tide",SPOT=SPOTS[0],LIM=15,RL=50,WL=3,TL=40,WA=5,WB=20,WM='day',DH=[5,20],EH=[17,22],OPEN=0,DAYS=[],TIDES=[];
 const $=s=>document.querySelector(s),DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];   // short query helper and day names
 // Midnight of day zero. All hours are counted from this point. Do not move it without a reason.
@@ -151,7 +156,7 @@ function sample(){LIVEON=false;DSRC='sample';
  DAYS=H;TIDES=T;DAYS.forEach((dy,d)=>dy.forEach((x,h)=>{x.cs=Math.abs(tideAt(d*24+h+1)-tideAt(d*24+h))*1.2}))}
 // 20261031 is the format NOAA wants.
 const ymd=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
-// Main loader. Three requests in parallel: weather, marine, tides. If one is slow, all wait. Dobre, enough.
+// Main loader. Three requests in parallel: weather, marine, tides. If one is slow, all wait.
 async function live(){
  $("#st").textContent="Loading…";
  const q=`latitude=${SPOT.lat}&longitude=${SPOT.lon}&timezone=auto&forecast_days=7`;
@@ -171,7 +176,7 @@ LIVEON=true;DSRC='live';LAST=Date.now();$("#st").textContent="Live data · updat
  draw()}
 // Tide height at any hour. Between two extremes we use cosine. It looks like real tide and costs nothing.
 function tideAt(t){if(!TIDES.length)return 0;if(t<TIDES[0].t)return TIDES[0].h;if(t>=TIDES[TIDES.length-1].t)return TIDES[TIDES.length-1].h;for(let i=0;i<TIDES.length-1;i++){const a=TIDES[i],b=TIDES[i+1];if(t>=a.t&&t<b.t){const f=(t-a.t)/(b.t-a.t);return a.h+(b.h-a.h)*(1-Math.cos(Math.PI*f))/2}}return 0}
-// One day into few numbers. Only the chosen time window counts (default 5a-8p). Nobody fishes at 3 AM. Well, some do.
+// One day into few numbers. Only the chosen time window counts (default 5a-8p). Hours outside the window are ignored.
 function stats(d){const H=DAYS[d],day=H.slice(WA,WB);
  let wm=day[0];day.forEach(x=>{if(x.w>wm.w)wm=x});
  const p=Math.max(...day.map(x=>x.p)),wv=Math.max(...day.map(x=>x.wv));
@@ -290,7 +295,7 @@ $("#tl").oninput=e=>{TL=+e.target.value;draw()};
 // NOAA station list is loaded one time and kept in memory. About 3000 stations.
 let STN=null,RES=[];
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])),km=(a,b,c,d)=>Math.hypot((c-a)*111,(d-b)*111*Math.cos(a*Math.PI/180));
-// Nearest NOAA station by simple flat-earth math. Good enough, we are not landing a rocket.
+// Nearest NOAA station by simple flat-earth distance. Accurate enough for this purpose.
 async function nearest(la,lo){try{if(!STN)STN=(await fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions').then(r=>r.json())).stations}catch(e){}
  const L=STN||SPOTS.map(s=>({id:s.st,name:s.n,lat:s.lat,lng:s.lon}));return L.reduce((m,s)=>km(la,lo,s.lat,s.lng)<km(la,lo,m.lat,m.lng)?s:m)}
 // Add spot from search. If it is within 1 km of an existing one, just select the existing. No duplicates.
@@ -307,7 +312,7 @@ const go=s=>{document.querySelector('main').classList.toggle('s',s);$('#gear').c
 $('#gear').onclick=()=>go(!document.querySelector('main').classList.contains('s'));$('#back').onclick=()=>{go(false);if(FROM){tab(FROM);FROM=null}};
 let EDIT=-1;const TS=/ \(tides:.*\)$/;
 let CONF=-1;
-// My spots list: rename, map, delete. Delete asks for confirmation, because delete is forever.
+// Fishing spots list: rename, map, delete. Delete asks for confirmation because it cannot be undone.
 function mine(){$('#mys').innerHTML=SPOTS.map((s,i)=>i==EDIT?`<div class='sp'><input id='rn' value='${esc(s.n.replace(TS,'')).replace(/'/g,'&#39;')}'><button data-s='${i}'>Save</button><button data-c='${i}' class='alt'>Cancel</button></div>`:i==CONF?`<div class='sp'><span>Delete ${esc(s.n.replace(TS,''))}?</span><button data-y='${i}' class='alt'>Yes, delete</button><button data-c='${i}' class='alt'>Cancel</button></div>`:`<div class='sp'><span>${esc(s.n)}</span><button data-r='${i}' class='alt'>Rename</button><button data-m='${i}' class='alt'>Map</button>${SPOTS.length>1?`<button data-x='${i}' class='alt'>Delete</button>`:''}</div>`).join('')}
 $('#mys').onclick=e=>{const t=e.target.dataset;
  if(t.x!=null){CONF=+t.x;EDIT=-1;mine()}
@@ -395,7 +400,7 @@ $("#go").onclick=live;
 $("#days").onclick=e=>{const b=e.target.closest&&e.target.closest('[data-v],[data-w]')||e.target,v=b.dataset.v,w=b.dataset.w;if(v){VIEW=v;draw()}else if(w){setWin(w);draw()}};
 $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(c){OPEN=+c.dataset.d;draw()}};
 // ---- Fishing log ----
-// Three tabs. Fish: one big button. Forecast: the old main page. Sessions: history and insights.
+// Three tabs. Fish: one big button. Forecast: weather, tides and settings. Sessions: history and insights.
 // Session = from START to STOP. Catch = one tap. Conditions are copied from the forecast at that moment,
 // so later we can ask "what worked?" without typing anything. All stays on this device.
 const LOGK='nsfh-log1';
@@ -405,7 +410,7 @@ try{const j=JSON.parse(localStorage.getItem(LOGK)||'null');if(j&&j.sessions){LOG
  // older catches had a Kept flag: it becomes size class Keeper
  [...LOG.sessions,...(LOG.active?[LOG.active]:[])].forEach(x=>x.c.forEach(f=>{if(f.keep&&!f.sz)f.sz='keeper';delete f.keep}))}}catch(e){}
 function lsave(){try{localStorage.setItem(LOGK,JSON.stringify(LOG));return true}catch(e){say('⚠ Couldn’t save the log on this device');return false}}
-// Small toast, same one as the settings use.
+// Small message at the bottom of the screen. The settings use the same one.
 function say(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(TT);TT=setTimeout(()=>t.classList.remove('show'),ms||1600)}
 const r1=v=>Math.round(v*10)/10,pad=n=>String(n).padStart(2,'0');
 const hm=ms=>{const m=Math.max(0,Math.round(ms/6e4));return Math.floor(m/60)+'h '+pad(m%60)+'m'};
@@ -429,10 +434,9 @@ const aSnap=(a,ms)=>a.sp.lat==SPOT.lat&&a.sp.lon==SPOT.lon?snap(ms):null;
 const find=id=>LOG.active&&LOG.active.id==id?LOG.active:LOG.sessions.find(x=>x.id==id);
 // ---- Position ----
 // Exact phone position for a session and for every catch. Separate from the forecast spot: the spot only feeds weather and tides.
-// One GPS request at a time is fine. It runs in the background, so the buttons never wait for it.
-let LASTPOS=null;
+// GPS requests run in the background, so the buttons never wait for them.
 const getPos=()=>new Promise(ok=>{if(!navigator.geolocation)return ok(null);
- try{navigator.geolocation.getCurrentPosition(p=>ok(LASTPOS={la:+p.coords.latitude.toFixed(5),lo:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy)}),()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:15000})}catch(e){ok(null)}});
+ try{navigator.geolocation.getCurrentPosition(p=>ok({la:+p.coords.latitude.toFixed(5),lo:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy)}),()=>ok(null),{enableHighAccuracy:true,timeout:8000,maximumAge:15000})}catch(e){ok(null)}});
 const fmtPos=p=>p.la.toFixed(4)+', '+p.lo.toFixed(4)+(p.m?' · set on map':' · ±'+p.acc+' m');
 // ---- Actions ----
 const rall=()=>{rfish();rlog();rsheet();rstrip()};
@@ -442,7 +446,7 @@ function logStart(){
  const a0=LOG.active={id:now.toString(36),sp:{n:lname(SPOT),lat:SPOT.lat,lon:SPOT.lon},s:now,e:null,tz:TZOFF,c:[],bait:'',note:'',cond:snap(now),pos:null,pw:1};
  LSUM=null;HERE=null;lsave();if(navigator.vibrate)navigator.vibrate(30);rall();
  getPos().then(p=>{if(!a0.pos)a0.pos=p;delete a0.pw;lsave();rfish();if(a0.pos)return placeSession(a0,a0.pos)})}
-// The quick sheet after a catch. It closes by itself after 5 s, any tap on it keeps it open another 5 s.
+// The quick sheet after a catch. It closes by itself after SHMS (6 s); every choice you make restarts that time.
 // The big CATCH button drains while the sheet is open, so you can see it will close and when. Any choice refills it.
 const SHMS=6000;let SHAT=0;
 const drain=on=>{const e=document.querySelector('.dr');if(!e||!e.classList)return;e.classList.remove('go');if(on){void e.offsetWidth;e.style.animationDelay='0ms';e.classList.add('go')}};
@@ -484,14 +488,23 @@ async function checkNear(){
 // Naming card after a session at a new place.
 const draftOf=x=>x&&SPOTS.find(s=>s.draft&&s.lat==x.sp.lat&&s.lon==x.sp.lon);
 function nameSpot(d,name){
- const old=lname(d);d.n=name+(d.n.match(TS)||[''])[0];delete d.draft;
+ d.n=name+(d.n.match(TS)||[''])[0];delete d.draft;
  LOG.sessions.concat(LOG.active?[LOG.active]:[]).forEach(x=>{if(x.sp.lat==d.lat&&x.sp.lon==d.lon)x.sp.n=name});
  lsave();save();fillSp(SPOTS.indexOf(SPOT));mine();draw()}
 // ---- Fish tab ----
 function nowLine(){const s=snap(Date.now());
  if(!s)return DSRC=='sample'?'Forecast not loaded, so conditions won’t be saved. Open Forecast and tap Refresh.':'No forecast for right now.';
  return'Now: '+s.tide+' tide · '+Math.round(s.wind)+' kn wind · '+tp(s.temp)+(DSRC=='cache'?' (saved forecast)':'')}
-function lastLine(){const l=LOG.sessions.reduce((m,x)=>!m||x.s>m.s?x:m,null);return l?'Last: '+sday(l.s)+' · '+cn(l.c.length):'No sessions yet'}
+// Where is the tide between the last and the next high/low? 0 = just turned, 1 = about to turn.
+function tideNow(){if(DSRC=='sample'||TIDES.length<2)return null;const hf=(Date.now()-dayMs0(0))/36e5;
+ for(let i=0;i<TIDES.length-1;i++){const a=TIDES[i],b=TIDES[i+1];if(hf>=a.t&&hf<b.t)return{f:(hf-a.t)/(b.t-a.t),up:b.type=='H',next:b}}return null}
+// The round button inside a ring. The ring shows the tide cycle: it fills from the last turn to the next, the dot is now.
+function orb(inner,act,extra){const t=tideNow(),C=2*Math.PI*140,f=t?Math.min(1,Math.max(0,t.f)):0,ang=f*2*Math.PI-Math.PI/2,
+  ring=`<svg class="ring" viewBox="0 0 300 300" aria-hidden="true"><circle class="rt" cx="150" cy="150" r="140"/>${t?`<circle class="rp" cx="150" cy="150" r="140" stroke-dasharray="${(f*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 150 150)"/><circle class="rd2" cx="${(150+140*Math.cos(ang)).toFixed(1)}" cy="${(150+140*Math.sin(ang)).toFixed(1)}" r="9"/>`:''}</svg>`;
+ return`<div class="orb">${ring}<button class="orbb" data-a="${act}">${extra||''}${inner}</button></div>`}
+function tideTxt(){const t=tideNow();if(!t)return nowLine();return(t.up?'Rising':'Falling')+' tide · '+(t.up?'High':'Low')+' at '+f2(((t.next.t%24)+24)%24)+(DSRC=='cache'?' (saved forecast)':'')}
+function condTxt(){const s=snap(Date.now());return s?Math.round(s.wind)+' kn '+cp(s.wdir)+' · '+tp(s.temp):''}
+function lastLine(){const l=LOG.sessions.reduce((m,x)=>!m||x.s>m.s?x:m,null);return l?'Last session '+sday(l.s)+' · '+cn(l.c.length):'No sessions yet'}
 const ago=ms=>{const m=Math.floor(ms/6e4);return m<1?'just now':m<60?m+' min ago':hm(ms)+' ago'},cntTxt=a=>cn(a.c.length)+(a.c.length?' · last '+ago(Date.now()-a.c[a.c.length-1].t):'');
 function rfish(){
  if(TAB!='fish')return;
@@ -501,8 +514,8 @@ function rfish(){
  if(!a){const sv=LSUM&&find(LSUM);
   const dr=draftOf(sv);
   const ph=dr?`<div class="lcard"><b>New spot here?</b><div class="mu">Name it so your next sessions here group together.</div><input id="nsname" placeholder="Spot name"><div class="row2"><button class="bigx bigs" style="background:var(--ac);flex:1;margin:0" data-a="nsave">Save name</button><button class="ib" data-a="nskip">Skip</button></div></div>`:'';
-  h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${nowLine()}</div>${HERE?`<div class="posl" style="margin-top:-4px">📍 ${HERE.new?'New location · you can name it after the session':'You’re at <b>'+esc2(HERE.n)+'</b>'}</div>`:''}<button class="giant" data-a="start">START<br>SESSION</button><div class="last">${lastLine()}</div>`}
- else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><button class="giant" data-a="catch"><i class="dr${LSEL>=0?' go':''}" style="animation-delay:-${LSEL>=0?Date.now()-SHAT:0}ms"></i><span>+ CATCH</span></button>
+  h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${tideTxt()}</div>${HERE?`<div class="posl" style="margin:-4px 0 4px">📍 ${HERE.new?'New location · you can name it after the session':'You’re at <b>'+esc2(HERE.n)+'</b>'}</div>`:''}${orb('<b>START</b><small>SESSION</small>','start')}<div class="last">${[condTxt(),lastLine()].filter(Boolean).join(' · ')}</div>`}
+ else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?'📍 '+fmtPos(a.pos):a.pw?'📍 Locating…':'📍 No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div>${orb('<b>CATCH</b>','catch',`<i class="dr${LSEL>=0?' go':''}" style="animation-delay:-${LSEL>=0?Date.now()-SHAT:0}ms"></i>`)}
   ${LSTOP?`<div class="conf"><button class="bigx" data-a="stop">Save session: ${a.c.length?cn(a.c.length):'no catches'}</button><button class="ib" data-a="nostop">Keep fishing</button></div>`:`<div class="row2"><button class="ib" data-a="undo1"${a.c.length?'':' disabled'}>Undo last</button><button class="stopb" data-a="askstop">Stop session</button></div>`}
   <input id="lbait" placeholder="Bait or lure (optional)" value="${esc2(a.bait)}">`;
  $('#fishv').innerHTML=`<div class="in">${head}${h}</div>`}
@@ -511,10 +524,27 @@ function rsheet(){const s=$('#sheet'),a=LOG.active;
  s.hidden=false;s.innerHTML=chips(a,LSEL,1)}
 // Green strip on top of the other tabs while a session is running. Tap it to go back to Fish.
 const stripTxt=a=>'● '+hmm(Date.now()-a.s)+' · '+cn(a.c.length)+' · tap to log';
-function rstrip(){const a=LOG.active,s=$('#strip'),on=!!a&&TAB!='fish';s.hidden=!on;document.body.classList.toggle('rec',on);if(on)s.textContent=stripTxt(a)}
+function rstrip(){const a=LOG.active,s=$('#strip'),on=!!a&&TAB!='fish';s.hidden=!on;document.body.classList.toggle('rec',on);if(on)s.textContent=stripTxt(a);themeBar()}
+// Android paints its status bar from the theme-color tag. A web app cannot draw under that bar, so we give it
+// the color of whatever is at the top of the screen (app background, or the green strip). It then looks like one surface.
+const hex=c=>{const m=String(c).match(/\d+(\.\d+)?/g);return m&&m.length>=3?'#'+m.slice(0,3).map(v=>(+v|0).toString(16).padStart(2,'0')).join(''):null};
+function themeBar(){try{const m=document.querySelector('meta[name=theme-color]');if(!m)return;const st=$('#strip'),el=st&&!st.hidden?st:document.body,h=hex(getComputedStyle(el).backgroundColor);if(h&&m.content!=h)m.content=h}catch(e){}}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(themeBar,50))}catch(e){}
 function tick(){const a=LOG.active;if(!a)return;const t=$('#ltimer');if(t)t.textContent=hmm(Date.now()-a.s);const c=$('#cnt');if(c)c.textContent=cntTxt(a);const s=$('#strip');if(s&&!s.hidden)s.textContent=stripTxt(a)}
 function ticker(){clearInterval(TK);rstrip();TK=setInterval(tick,1000);if(TK.unref)TK.unref()}
-function tab(t){TAB=t;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.remove('s');$('#gear').classList.remove('on');scrollTo(0,0);rall()}
+const TABS=['fish','fc','trips'],VIEWS={fish:'#fishv',fc:'main',trips:'#logw'};
+function tab(t){const old=TAB;TAB=t;if(t=='fish')checkNear();if(t!='fish'){LSUM=null;LSTOP=0}LSEL=-1;document.body.dataset.t=t;document.querySelector('main').classList.remove('s');$('#gear').classList.remove('on');scrollTo(0,0);rall();slide(old,t)}
+// The page you go to slides in from the side you are heading to.
+function slide(a,b){if(a==b)return;try{const el=document.querySelector(VIEWS[b]);if(!el||!el.classList)return;el.classList.remove('sl','sr');void el.offsetWidth;el.classList.add(TABS.indexOf(b)>TABS.indexOf(a)?'sl':'sr')}catch(e){}}
+// Swipe left or right anywhere to change page. Charts, sideways scrolling rows, inputs, maps and settings keep their own gestures.
+let SW=null;
+const NOSW='svg[data-c],.sc,input,textarea,select,#sheet,#mapw,.smap,.leaflet-container,.lcard.sht';
+document.addEventListener('touchstart',e=>{const t=e.touches[0],x=e.target;
+ SW=e.touches.length==1&&!(x.closest&&x.closest(NOSW))&&!document.querySelector('main.s')?{x:t.clientX,y:t.clientY,t:Date.now()}:null},{passive:true});
+document.addEventListener('touchend',e=>{if(!SW)return;const t=e.changedTouches[0],dx=t.clientX-SW.x,dy=t.clientY-SW.y,dt=Date.now()-SW.t;SW=null;
+ if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8||dt>700||$('#mapw').hidden===false)return;
+ const i=TABS.indexOf(TAB)+(dx<0?1:-1);if(i>=0&&i<TABS.length)tab(TABS[i])},{passive:true});
+document.addEventListener('touchcancel',()=>{SW=null},{passive:true});
 // ---- Sessions tab ----
 function condLine(c){if(!c)return'<span class="mu">No conditions saved</span>';
  return [c.tide+' tide',Math.round(c.wind)+' kn wind',tp(c.temp),c.light,phaseOf(c.moon)[1]].join(' · ')}
@@ -660,7 +690,7 @@ function restore(){try{const c=JSON.parse(localStorage.getItem('nsfh-c-'+SPOT.la
 function ext(m){const s=m.hourly.sea_level_height_msl.map(v=>v*3.281),T=[];for(let i=1;i<s.length-1;i++){const a=s[i-1],b=s[i],c=s[i+1];if(b>a&&b>=c)T.push({t:i,type:'H',h:b});else if(b<a&&b<=c)T.push({t:i,type:'L',h:b})}return T}
 // Time zone offset of the spot, in seconds. The now-line must follow the spot, not your phone.
 let TZOFF=-new Date().getTimezoneOffset()*60;
-// Back in the app after 15 minutes? Refresh. Ne chipay: it works.
+// Back in the app after more than 15 minutes? Refresh the forecast.
 let LAST=0,LIVEON=false,DSRC='sample';document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LAST>9e5)live();if(!document.hidden&&TAB=='fish')checkNear()});
 // Start: show cached data at once, then ask the network.
 fillTw();mine();if(restore()===null)sample();draw();live();ticker();checkNear();tab('fish');
