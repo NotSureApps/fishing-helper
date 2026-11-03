@@ -166,10 +166,13 @@ html{height:100%;overflow:hidden}body{height:100%;overflow-y:auto;overflow-x:hid
 #pv img{max-width:100%;max-height:72vh;border-radius:12px;object-fit:contain}#pv .pvr{display:flex;gap:10px}#pv .pvr button{min-width:130px;margin:0}
 .sbody .pimg{align-self:center}.sbody .phadd{align-self:center}
 .smw{position:relative}.mfs{position:absolute;right:8px;bottom:8px;z-index:500;width:auto;min-height:0;margin:0;padding:6px 10px;font-size:13px;font-weight:700;border-radius:8px;background:rgba(255,255,255,.95);color:#234;border:0}
-.cmk{width:28px;height:28px;border-radius:50%;background:#1e9e5a;color:#fff;border:2px solid #fff;display:grid;place-items:center;font-weight:800;font-size:13px;box-shadow:0 1px 4px #0006}.cmk.rel{background:#7b8a96}
+/* .leaflet-marker-icon is added by Leaflet's own stylesheet after ours and sets display:block, so the double class is needed to keep the number centered. */
+.leaflet-marker-icon.cmk{box-sizing:border-box;width:28px;height:28px;border-radius:50%;background:#1e9e5a;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;text-align:center;font:800 13px/1 system-ui,sans-serif;box-shadow:0 1px 4px #0006}.leaflet-marker-icon.cmk.rel{background:#7b8a96}
 .nb{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#1e9e5a;color:#fff;font-size:12px;font-weight:800;margin-right:6px;vertical-align:2px}.nb.rel{background:#7b8a96}
 .mpop{font-size:13px;line-height:1.35;color:#123;min-width:120px}.mpop b{font-size:15px}.mpop .th2{float:left;margin-right:8px;width:40px;height:40px}.mpop::after{content:"";display:block;clear:both}
 #mapfs{position:fixed;inset:0;z-index:95;background:var(--bg);display:flex;flex-direction:column;gap:8px;padding:8px}#mapfs[hidden]{display:none}#mapfsm{flex:1;border-radius:12px;overflow:hidden}#mapfs .ib{margin:0;flex:none}
+.leaflet-marker-icon.cmk.grp{border-radius:14px}.mpop .mrow{display:flex;gap:6px;align-items:flex-start;padding:6px 0;border-top:1px solid #0002;cursor:pointer}.mpop .mrow:first-of-type{border-top:0}.mpop .mrow .th2{width:32px;height:32px;float:none;margin:0}.mpop .mrow .nb{flex:none;margin-top:1px}.mpop .mu{color:#567}
+.lrow2.flash{animation:flsh 1.6s ease-out}@keyframes flsh{0%,60%{background:rgba(76,181,227,.3)}100%{background:transparent}}
 </style></head>
 <body data-t="fish"><!-- Forecast page: banner, spot picker, day boxes, details. Settings share this page and show on the Settings tab. -->
 <div id="topw"><header class="brand" id="brand"><svg class="logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".18"/><path d="M6 24c6-9 16-11 24-4l9-6v20l-9-6c-8 7-18 5-24-4z" fill="#fff"/><circle cx="15" cy="22" r="2" fill="#0a4a66"/></svg><div><h1>Not Sure Fishing Helper</h1></div></header></div>
@@ -951,14 +954,27 @@ let SM=null,SMF=null;
 // Session map: the session position, and one numbered marker per catch (same number as the list). Green = kept, grey = released.
 // A dashed line joins the catches in the order they were made. Tap a marker for the fish, time, bait and photo.
 function drawSess(el,x,full){
- const pts=[];if(x.pos)pts.push([x.pos.la,x.pos.lo]);x.c.forEach(f=>f.pos&&pts.push([f.pos.la,f.pos.lo]));if(!pts.length)return null;
+ const has=x.c.map((f,i)=>f.pos?i:-1).filter(i=>i>=0),pts=[];if(x.pos)pts.push([x.pos.la,x.pos.lo]);has.forEach(i=>pts.push([x.c[i].pos.la,x.c[i].pos.lo]));if(!pts.length)return null;
  const m=L.map(el,{zoomControl:!!full,scrollWheelZoom:!!full});L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(m);
- const path=x.c.map((f,i)=>f.pos?[f.t,f.pos.la,f.pos.lo]:null).filter(Boolean).sort((p,q)=>p[0]-q[0]).map(p=>[p[1],p[2]]);
- if(path.length>1)L.polyline(path,{color:'#fff',weight:3,opacity:.9,dashArray:'6 6'}).addTo(m);
  if(x.pos)L.circleMarker([x.pos.la,x.pos.lo],{radius:10,weight:3,color:'#0a4a66',fillColor:'#4cb5e3',fillOpacity:.9}).bindTooltip('Session position').addTo(m);
- x.c.forEach((f,i)=>{if(!f.pos)return;const o=outOf(f),mk=L.marker([f.pos.la,f.pos.lo],{icon:L.divIcon({className:'cmk'+(o=='rel'?' rel':''),html:String(i+1),iconSize:[28,28],iconAnchor:[14,14]})}).addTo(m);
-  mk.bindPopup(`<div class="mpop">${f.ph&&f.ph[0]?`<img class="th2" data-ph="${f.ph[0]}" alt="">`:''}<b>${esc2(f.sp||'Catch')}${f.len?' '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}</b><div>${stm(f.t)}${o?' · '+(o=='kept'?'kept':'released'):''}</div><div>${f.bait?'on '+esc2(f.bait):'no bait noted'}</div></div>`,{closeButton:false,maxWidth:220,autoPanPadding:[20,20]})});
- m.fitBounds(pts,{padding:[34,34],maxZoom:17});setTimeout(()=>m.invalidateSize(),60);return m}
+ const lay=L.layerGroup().addTo(m);
+ const line=f=>`<b>${esc2(f.sp||'Catch')}${f.len?' '+lenShow(f.len)+(UN=='m'?' cm':'″'):''}</b><div>${stm(f.t)}${outOf(f)?' · '+(outOf(f)=='kept'?'kept':'released'):''} · ${f.bait?'on '+esc2(f.bait):'no bait noted'}</div>`;
+ // Catches closer than about 26 px on screen (or 3 m on the ground) share one marker. Zooming in splits them.
+ function build(){lay.clearLayers();const z=m.getZoom?m.getZoom():17,cl=[];
+  has.forEach(i=>{const f=x.c[i],ppm=256*Math.pow(2,z)/(40075016*Math.cos(f.pos.la*Math.PI/180));
+   const g=cl.find(c=>{const d=km(c.la,c.lo,f.pos.la,f.pos.lo)*1000;return d<3||d*ppm<26});
+   if(g){g.ix.push(i);g.la=(g.la*(g.ix.length-1)+f.pos.la)/g.ix.length;g.lo=(g.lo*(g.ix.length-1)+f.pos.lo)/g.ix.length}else cl.push({ix:[i],la:f.pos.la,lo:f.pos.lo})});
+  if(cl.length>1)L.polyline(cl.map(c=>[c.la,c.lo]),{color:'#fff',weight:3,opacity:.9,dashArray:'6 6'}).addTo(lay);
+  cl.forEach(c=>{const fs=c.ix.map(i=>x.c[i]),one=fs.length==1,rel=fs.every(f=>outOf(f)=='rel');
+   const mk=L.marker([c.la,c.lo],{icon:L.divIcon({className:'cmk'+(one?'':' grp')+(rel?' rel':''),html:one?String(c.ix[0]+1):'×'+fs.length,iconSize:one?[28,28]:[38,28],iconAnchor:one?[14,14]:[19,14]})}).addTo(lay);
+   const pop=document.createElement('div');pop.className='mpop';
+   pop.innerHTML=one?(fs[0].ph&&fs[0].ph[0]?`<img class="th2" data-ph="${fs[0].ph[0]}" alt="">`:'')+line(fs[0])
+    :`<div class="mu">${fs.length} catches here</div>`+c.ix.map(i=>`<div class="mrow" data-i="${i}"><span class="nb${outOf(x.c[i])=='rel'?' rel':''}">${i+1}</span>${x.c[i].ph&&x.c[i].ph[0]?`<img class="th2" data-ph="${x.c[i].ph[0]}" alt="">`:''}<div>${line(x.c[i])}</div></div>`).join('');
+   pop.onclick=e=>{const r=e.target.closest('.mrow');if(r)showCatch(x.id,+r.dataset.i,full)};
+   mk.bindPopup(pop,{closeButton:false,maxWidth:240,autoPanPadding:[20,20]})})}
+ m.fitBounds(pts,{padding:[34,34],maxZoom:17});build();if(m.on)m.on('zoomend',build);setTimeout(()=>m.invalidateSize(),60);return m}
+// From a popup row: scroll to that catch in the session list and flash it.
+function showCatch(id,i,full){if(full)closeMapFs();const r=document.querySelector('.lrow2[data-id="'+id+'"][data-i="'+i+'"]');if(!r)return;r.scrollIntoView({block:'center',behavior:'smooth'});r.classList.add('flash');setTimeout(()=>r.classList.remove('flash'),1600)}
 async function smap(x){const el=$('#smap');if(!el||!x)return;
  try{await loadLeaflet()}catch(e){el.textContent='The map needs a connection.';return}
  if($('#smap')!==el)return;if(SM){try{SM.remove()}catch(e){}SM=null}
