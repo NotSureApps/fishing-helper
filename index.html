@@ -689,10 +689,12 @@ const METH=['Shore','Surf','Pier','Boat','Kayak','Other'];
 const SBAR=6000,SHMS=12000;let SHAT=0,SDUR=SHMS,SEXP=0;   // SEXP: 1 once the full sheet is open
 const drain=on=>{const e=document.querySelector('.dr');if(!e||!e.classList)return;e.classList.remove('go');if(on){void e.offsetWidth;e.style.animationDuration=SDUR+'ms';e.style.animationDelay='0ms';e.classList.add('go')}};
 function sheetOpen(i){LSEL=i;SDUR=SEXP?SHMS:SBAR;SHAT=Date.now();clearTimeout(SHT);SHT=setTimeout(()=>{const ae=document.activeElement;if(isBox(ae)&&ae.dataset.sh){sheetOpen(LSEL);return}LSEL=-1;drain(0);rsheet()},SDUR);drain(1)}
+// The first catch of a session starts with the bait or lure from your most recent catch that had one.
+const lastBait=()=>{for(const x of LOG.sessions)for(let i=x.c.length-1;i>=0;i--)if(x.c[i].bait)return x.c[i].bait;return''};
 function logCatch(){
  const a=LOG.active;if(!a)return;
  // bait carries over from the previous catch, because you usually keep fishing the same one
- const now=Date.now(),c0={t:now,sp:'',len:null,sz:'',bait:a.c.length?a.c[a.c.length-1].bait||'':'',cond:aSnap(a,now),pos:null,rig:a.rig||''};a.c.push(c0);SSTEP=0;SEXP=0;
+ const now=Date.now(),c0={t:now,sp:'',len:null,sz:'',bait:a.c.length?a.c[a.c.length-1].bait||'':lastBait(),cond:aSnap(a,now),pos:null,rig:a.rig||''};a.c.push(c0);SSTEP=0;SEXP=0;
  getPos().then(p=>{if(p&&p.acc<=150){c0.pos=p;lsave()}});
  lsave();if(navigator.vibrate)navigator.vibrate(30);sheetOpen(a.c.length-1);rall()}
 function logStop(){
@@ -745,7 +747,7 @@ const emptyArc=(t,sub)=>`<div class="empty"><svg viewBox="0 0 100 100" width="96
 function orb(inner,act,extra,dis){const t=tideNow(),C=2*Math.PI*140,f=t?Math.min(1,Math.max(0,t.f)):0,ang=f*2*Math.PI-Math.PI/2,
   ring=`<svg class="ring" viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--g1)"/><stop offset="1" style="stop-color:var(--g2)"/></linearGradient></defs><circle class="rt" cx="150" cy="150" r="140"/>${t?`<circle class="rp" cx="150" cy="150" r="140" stroke-dasharray="${(f*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 150 150)"/><circle class="rd2" cx="${(150+140*Math.cos(ang)).toFixed(1)}" cy="${(150+140*Math.sin(ang)).toFixed(1)}" r="9"/>`:''}</svg>`;
  return`<div class="orb">${ring}<button class="orbb" data-a="${act}"${dis?' disabled aria-disabled="true"':''}>${extra||''}${inner}</button></div>`}
-function tideTxt(){const t=tideNow();if(!t)return nowLine();return(t.up?'Rising':'Falling')+' tide · '+(t.up?'High':'Low')+' at '+f2(((t.next.t%24)+24)%24)+(DSRC=='cache'?' (saved forecast)':'')}
+function tideTxt(){const t=tideNow();if(!t)return nowLine();const nowH=tideAt((Date.now()-dayMs0(0))/36e5);return(t.up?'Rising':'Falling')+' tide · '+ln(nowH)+' now<br>'+(t.up?'High ':'Low ')+ln(t.next.h)+' at '+f2(((t.next.t%24)+24)%24)+(DSRC=='cache'?' (saved forecast)':'')}
 function condTxt(){const s=snap(Date.now());return s?Math.round(s.wind)+' kn '+cp(s.wdir)+' · '+tp(s.temp):''}
 function lastLine(){const l=LOG.sessions.reduce((m,x)=>!m||x.s>m.s?x:m,null);return l?'Last session '+sday(l.s)+' · '+cn(l.c.length):'No sessions yet'}
 const ago=ms=>{const m=Math.floor(ms/6e4);return m<1?'just now':m<60?m+' min ago':hm(ms)+' ago'},cntTxt=a=>cn(a.c.length)+(a.c.length?' · last '+ago(Date.now()-a.c[a.c.length-1].t):'');
@@ -758,7 +760,7 @@ function rfish(){
  else if(!a){const sv=LSUM&&find(LSUM);
   const dr=draftOf(sv);
   const ph=dr?`<div class="lcard"><b>New spot here?</b><div class="mu">Name it so your next sessions here group together.</div><input id="nsname" placeholder="Spot name"><div class="row2"><button class="bigx bigs" style="background:var(--grad);color:#fff;flex:1;margin:0" data-a="nsave">Save name</button><button class="ib" data-a="nskip">Skip</button></div></div>`:'';
-  h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${tideTxt()}</div>${HERE?`<div class="posl" style="margin:-4px 0 4px">${ico('pin')} ${HERE.new?'New location · you can name it after the session':'You’re at <b>'+esc2(HERE.n)+'</b>'}</div>`:''}${orb('<b>START</b><small>SESSION</small>','start')}<div class="last">${[condTxt(),lastLine()].filter(Boolean).join(' · ')}</div>`}
+  h=(sv?(dr?`<div class="lcard"><b>Session saved</b> · ${cn(sv.c.length)} · ${hm(sv.e-sv.s)}</div>`:`<div class="lcard"><b>Session saved</b></div>`+sumCard(sv)):'')+ph+`<div class="now">${tideTxt()}</div>${HERE&&HERE.new?`<div class="posl" style="margin:-4px 0 4px">${ico('pin')} New location · you can name it after the session</div>`:''}${orb('<b>START</b><small>SESSION</small>','start')}<div class="last">${[condTxt(),lastLine()].filter(Boolean).join(' · ')}</div>`}
  else h=`<div class="tmr" id="ltimer">${hmm(Date.now()-a.s)}</div><div class="sub" id="cnt">${cntTxt(a)}</div><div class="posl">${a.pos?ico('pin')+' '+fmtPos(a.pos):a.pw?ico('pin')+' Locating…':ico('pin')+' No position'} <button class="lnk" data-a="pin">${a.pos?'Move pin':'Pick on map'}</button></div><div class="posl" style="margin-top:-8px">Rig: <b>${a.rig?esc2(a.rig):'none'}</b> <button class="lnk" data-a="rig">${a.rig?'Change':'Set rig'}</button></div><div class="posl" style="margin-top:-8px">Method: <b>${a.mt?esc2(a.mt):'none'}</b> <button class="lnk" data-a="meth">${a.mt?'Change':'Set method'}</button></div>${orb('<b>CATCH</b>','catch',`<i class="dr${LSEL>=0?' go':''}" style="animation-duration:${SDUR}ms;animation-delay:-${LSEL>=0?Date.now()-SHAT:0}ms"></i>`)}
   ${LSTOP?`<div class="conf"><button class="bigx" data-a="stop">Save session: ${a.c.length?cn(a.c.length):'no catches'}</button><button class="ib" data-a="nostop">Keep fishing</button></div>`:`<div class="row2"><button class="ib" data-a="undo1"${a.c.length?'':' disabled'}>Remove last</button><button class="ib" data-a="edit1"${a.c.length?'':' disabled'}>Edit last</button><button class="stopb" data-a="askstop">Stop session</button></div>`}`;
  $('#fishv').innerHTML=`<div class="in">${head}${h}</div>`}
